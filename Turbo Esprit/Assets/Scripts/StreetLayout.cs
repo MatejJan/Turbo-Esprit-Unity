@@ -63,7 +63,7 @@ namespace TurboEsprit
             // Create intersections if necessary and assign them to the street.
             Intersection CreateIntersection(Vector2Int location)
             {
-                var intersection = new Intersection { location = location };
+                var intersection = new Intersection { position = location };
                 intersections[location] = intersection;
                 return intersection;
             }

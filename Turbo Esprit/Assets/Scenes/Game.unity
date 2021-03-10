@@ -343,9 +343,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 0d4622d503b2f47b2b90ed4035b618a7, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  roadPrefab: {fileID: 0}
-  sidewalkPrefab: {fileID: 0}
-  sidewalkCornerPrefab: {fileID: 0}
+  roadPrefab: {fileID: 6234614896285916889, guid: 41bf2a525eaf940a8b78201b3249d712, type: 3}
+  sidewalkPrefab: {fileID: 6105768712338597580, guid: 909453cd163274ebbbaed17dcbe33b8c, type: 3}
+  sidewalkCornerPrefab: {fileID: 1329366099145433304, guid: c6d109b4b041845bfbd574f8b9e79050, type: 3}
   solidLinePrefab: {fileID: 0}
   brokenLinePrefab: {fileID: 0}
 --- !u!114 &1464943639
@@ -360,3 +360,4 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 524077a3ec1ba4b649dbf8016d4defda, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  streetPieces: {fileID: 0}

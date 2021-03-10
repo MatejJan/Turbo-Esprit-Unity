@@ -11,6 +11,12 @@ namespace TurboEsprit
         public const float sidewalkWidth = 3;
 
         public StreetLayout streetLayout;
+        public StreetPieces streetPieces;
+
+        private void Awake()
+        {
+            streetPieces = GetComponent<StreetPieces>();
+        }
 
         private void Start()
         {

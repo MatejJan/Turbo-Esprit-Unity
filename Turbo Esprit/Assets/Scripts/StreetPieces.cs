@@ -11,5 +11,10 @@ namespace TurboEsprit
         public GameObject sidewalkCornerPrefab;
         public GameObject solidLinePrefab;
         public GameObject brokenLinePrefab;
+
+        public GameObject Instantiate(GameObject prefab, GameObject parent)
+        {
+            return Instantiate<GameObject>(prefab, parent.transform);
+        }
     }
 }
