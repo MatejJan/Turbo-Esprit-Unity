@@ -14,6 +14,8 @@ namespace TurboEsprit
         public Street eastStreet;
         public Street westStreet;
 
+        private GameObject gameObject;
+
         public bool hasTrafficLights
         {
             get
@@ -49,13 +51,13 @@ namespace TurboEsprit
         public void Generate(City city)
         {
             // Create the intersection game object as a child of Intersections.
-            GameObject intersectionGameObject = new GameObject($"Intersection ({position.x}, {position.y})");
-            intersectionGameObject.transform.parent = city.transform.Find("Intersections");
+            gameObject = new GameObject($"Intersection ({position.x}, {position.y})");
+            gameObject.transform.parent = city.transform.Find("Intersections");
 
             // Position in the game world.
             Vector2 size = GetSize();
 
-            intersectionGameObject.transform.localPosition = new Vector3
+            gameObject.transform.localPosition = new Vector3
             {
                 x = position.x - size.x / 2,
                 z = position.y - size.y / 2
@@ -64,13 +66,13 @@ namespace TurboEsprit
             // Place prefabs.
             StreetPieces streetPieces = city.streetPieces;
 
-            GameObject road = streetPieces.Instantiate(streetPieces.roadPrefab, intersectionGameObject);
+            GameObject road = streetPieces.Instantiate(streetPieces.roadPrefab, gameObject);
             road.transform.localScale = new Vector3(size.x, 1, size.y);
 
             // Place sidewalk corners or sides.
             void CreateCorner(float rotation, float x, float z)
             {
-                GameObject corner = streetPieces.Instantiate(streetPieces.sidewalkCornerPrefab, intersectionGameObject);
+                GameObject corner = streetPieces.Instantiate(streetPieces.sidewalkCornerPrefab, gameObject);
                 corner.transform.localScale = new Vector3(City.sidewalkWidth, 1, City.sidewalkWidth);
                 corner.transform.localRotation = Quaternion.Euler(0, rotation, 0);
                 corner.transform.localPosition = new Vector3 { x = x, z = z };
@@ -83,27 +85,27 @@ namespace TurboEsprit
 
             if (northStreet == null)
             {
-                GameObject sidewalk = streetPieces.Instantiate(streetPieces.sidewalkPrefab, intersectionGameObject);
+                GameObject sidewalk = streetPieces.Instantiate(streetPieces.sidewalkPrefab, gameObject);
                 sidewalk.transform.localScale = new Vector3(size.x, 1, City.sidewalkWidth);
                 sidewalk.transform.localPosition = new Vector3 { z = size.y - City.sidewalkWidth };
             }
 
             if (southStreet == null)
             {
-                GameObject sidewalk = streetPieces.Instantiate(streetPieces.sidewalkPrefab, intersectionGameObject);
+                GameObject sidewalk = streetPieces.Instantiate(streetPieces.sidewalkPrefab, gameObject);
                 sidewalk.transform.localScale = new Vector3(size.x, 1, City.sidewalkWidth);
             }
 
             if (eastStreet == null)
             {
-                GameObject sidewalk = streetPieces.Instantiate(streetPieces.sidewalkPrefab, intersectionGameObject);
+                GameObject sidewalk = streetPieces.Instantiate(streetPieces.sidewalkPrefab, gameObject);
                 sidewalk.transform.localScale = new Vector3(City.sidewalkWidth, 1, size.y);
                 sidewalk.transform.localPosition = new Vector3 { x = size.x - City.sidewalkWidth };
             }
 
             if (westStreet == null)
             {
-                GameObject sidewalk = streetPieces.Instantiate(streetPieces.sidewalkPrefab, intersectionGameObject);
+                GameObject sidewalk = streetPieces.Instantiate(streetPieces.sidewalkPrefab, gameObject);
                 sidewalk.transform.localScale = new Vector3(City.sidewalkWidth, 1, size.y);
             }
 
@@ -137,7 +139,7 @@ namespace TurboEsprit
                 }
                 else
                 {
-                    GameObject centerLine = streetPieces.Instantiate(streetPieces.solidLinePrefab, intersectionGameObject);
+                    GameObject centerLine = streetPieces.Instantiate(streetPieces.solidLinePrefab, gameObject);
                     centerLine.transform.localScale = new Vector3(1, 1, size.y);
                     centerLine.transform.localPosition = new Vector3 { x = size.x / 2 };
                 }
@@ -151,7 +153,7 @@ namespace TurboEsprit
 
                 foreach (float xCoordinate in brokenLineXCoordinates)
                 {
-                    GameObject laneLine = streetPieces.Instantiate(streetPieces.brokenLinePrefab, intersectionGameObject);
+                    GameObject laneLine = streetPieces.Instantiate(streetPieces.brokenLinePrefab, gameObject);
                     laneLine.transform.localScale = new Vector3(1, 1, size.y);
                     laneLine.transform.localPosition = new Vector3 { x = xCoordinate };
                     StreetPieces.ChangeBrokenLineTiling(laneLine);
@@ -168,7 +170,7 @@ namespace TurboEsprit
                 }
                 else
                 {
-                    GameObject centerLine = streetPieces.Instantiate(streetPieces.solidLinePrefab, intersectionGameObject);
+                    GameObject centerLine = streetPieces.Instantiate(streetPieces.solidLinePrefab, gameObject);
                     centerLine.transform.localScale = new Vector3(1, 1, size.x);
                     centerLine.transform.localRotation = Quaternion.Euler(0, 90, 0);
                     centerLine.transform.localPosition = new Vector3 { z = size.y / 2 };
@@ -183,7 +185,7 @@ namespace TurboEsprit
 
                 foreach (float zCoordinate in brokenLineZCoordinates)
                 {
-                    GameObject laneLine = streetPieces.Instantiate(streetPieces.brokenLinePrefab, intersectionGameObject);
+                    GameObject laneLine = streetPieces.Instantiate(streetPieces.brokenLinePrefab, gameObject);
                     laneLine.transform.localScale = new Vector3(1, 1, size.x);
                     laneLine.transform.localRotation = Quaternion.Euler(0, 90, 0);
                     laneLine.transform.localPosition = new Vector3 { z = zCoordinate };
