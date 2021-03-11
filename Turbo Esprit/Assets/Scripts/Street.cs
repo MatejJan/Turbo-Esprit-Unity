@@ -17,7 +17,7 @@ namespace TurboEsprit
         {
             // Create the street game object as a child of Streets.
             GameObject streetGameObject = new GameObject();
-            streetGameObject.transform.parent = city.transform.Find("Intersections");
+            streetGameObject.transform.parent = city.transform.Find("Streets");
 
             // Calculate size and position in the game world.
             Vector2 startIntersectionHalfSize = startIntersection.GetSize() / 2;
@@ -70,6 +70,72 @@ namespace TurboEsprit
             GameObject sidewalkRight = streetPieces.Instantiate(streetPieces.sidewalkPrefab, streetGameObject);
             sidewalkRight.transform.localScale = new Vector3(City.sidewalkWidth, 1, length);
             sidewalkRight.transform.localPosition = new Vector3 { x = width - City.sidewalkWidth };
+
+            // Place lane division lines.
+            var dashedLineXCoordinates = new List<float>();
+
+            if (isOneWay)
+            {
+                dashedLineXCoordinates.Add(width / 2);
+            }
+            else
+            {
+                GameObject centerLine = streetPieces.Instantiate(streetPieces.linePrefab, streetGameObject);
+                centerLine.transform.localScale = new Vector3(1, 1, length);
+                centerLine.transform.localPosition = new Vector3 { x = width / 2 };
+            }
+
+            for (int i = 2; i < lanesCount; i++)
+            {
+                float sideOffset = City.sidewalkWidth + City.laneWidth * (i / 2);
+                dashedLineXCoordinates.Add(sideOffset);
+                dashedLineXCoordinates.Add(width - sideOffset);
+            }
+
+            void AddDashedSegment(float z)
+            {
+                foreach (float xCoordinate in dashedLineXCoordinates)
+                {
+                    GameObject line = streetPieces.Instantiate(streetPieces.linePrefab, streetGameObject);
+                    line.transform.localScale = new Vector3(1, 1, City.dashedLineLength);
+                    line.transform.localPosition = new Vector3 { x = xCoordinate, z = z - City.dashedLineLength / 2 };
+                }
+            }
+
+            int dashedSegmentsHalfCount = Mathf.FloorToInt((length - City.dashedLineLength) / 2 / City.dashedLineSpacing);
+            int dashedSegmentsCount = dashedSegmentsHalfCount * 2 + 1;
+            float dashedSegmentsStart = (length - City.dashedLineLength) / 2 - City.dashedLineSpacing * dashedSegmentsHalfCount;
+
+            for (int i = 0; i < dashedSegmentsCount; i++)
+            {
+                AddDashedSegment(dashedSegmentsStart + City.dashedLineSpacing * i);
+            }
+
+            GameObject CreateStopLine()
+            {
+                GameObject stopLine = streetPieces.Instantiate(streetPieces.linePrefab, streetGameObject);
+
+                float lineLength = roadWidth;
+                if (!isOneWay) lineLength /= 2;
+                stopLine.transform.localScale = new Vector3(1, 1, lineLength);
+
+                return stopLine;
+            }
+
+            // Place intersection stop lines.
+            if (endIntersection.HasStopLineForStreet(this))
+            {
+                GameObject stopLine = CreateStopLine();
+                stopLine.transform.localRotation = Quaternion.Euler(0, 90, 0);
+                stopLine.transform.localPosition = new Vector3 { x = City.sidewalkWidth, z = length - City.lineWidth / 2 };
+            }
+
+            if (startIntersection.HasStopLineForStreet(this))
+            {
+                GameObject stopLine = CreateStopLine();
+                stopLine.transform.localRotation = Quaternion.Euler(0, 270, 0);
+                stopLine.transform.localPosition = new Vector3 { x = width - City.sidewalkWidth, z = City.lineWidth / 2 };
+            }
         }
     }
 }

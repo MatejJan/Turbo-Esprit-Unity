@@ -9,6 +9,32 @@ namespace TurboEsprit
         public List<Street> streets = new List<Street>();
         public Dictionary<Vector2Int, Intersection> intersections = new Dictionary<Vector2Int, Intersection>();
 
+        protected void AddNorthSouthStreet(int xCoordinate, int[] yCoordinates, int lanesCount, bool isOneWay = false)
+        {
+            for (int i = 0; i < yCoordinates.Length - 1; i++)
+            {
+                AddStreet(
+                    new Vector2Int(xCoordinate, yCoordinates[i]),
+                    new Vector2Int(xCoordinate, yCoordinates[i + 1]),
+                    lanesCount,
+                    isOneWay
+                );
+            }
+        }
+
+        protected void AddEastWestStreet(int yCoordinate, int[] xCoordinates, int lanesCount, bool isOneWay = false)
+        {
+            for (int i = 0; i < xCoordinates.Length - 1; i++)
+            {
+                AddStreet(
+                    new Vector2Int(xCoordinates[i], yCoordinate),
+                    new Vector2Int(xCoordinates[i + 1], yCoordinate),
+                    lanesCount,
+                    isOneWay
+                );
+            }
+        }
+
         protected Street AddStreet(Vector2Int fromBlock, Vector2Int toBlock, int lanesCount, bool isOneWay = false)
         {
             // Assert lane restrictions.

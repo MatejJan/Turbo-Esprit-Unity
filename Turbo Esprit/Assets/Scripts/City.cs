@@ -9,6 +9,9 @@ namespace TurboEsprit
         public const float speedLimit = 40;
         public const float laneWidth = 4;
         public const float sidewalkWidth = 3;
+        public const float lineWidth = 0.2f;
+        public const float dashedLineLength = 2.5f;
+        public const float dashedLineSpacing = 5;
 
         public StreetLayout streetLayout;
         public StreetPieces streetPieces;

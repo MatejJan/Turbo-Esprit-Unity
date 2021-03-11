@@ -9,8 +9,7 @@ namespace TurboEsprit
         public GameObject roadPrefab;
         public GameObject sidewalkPrefab;
         public GameObject sidewalkCornerPrefab;
-        public GameObject solidLinePrefab;
-        public GameObject brokenLinePrefab;
+        public GameObject linePrefab;
 
         public GameObject Instantiate(GameObject prefab, GameObject parent)
         {

@@ -172,8 +172,8 @@ Camera:
     y: 0
     width: 1
     height: 1
-  near clip plane: 0.3
-  far clip plane: 1000
+  near clip plane: 0.1
+  far clip plane: 100
   field of view: 60
   orthographic: 0
   orthographic size: 5
@@ -346,8 +346,7 @@ MonoBehaviour:
   roadPrefab: {fileID: 6234614896285916889, guid: 41bf2a525eaf940a8b78201b3249d712, type: 3}
   sidewalkPrefab: {fileID: 6105768712338597580, guid: 909453cd163274ebbbaed17dcbe33b8c, type: 3}
   sidewalkCornerPrefab: {fileID: 1329366099145433304, guid: c6d109b4b041845bfbd574f8b9e79050, type: 3}
-  solidLinePrefab: {fileID: 0}
-  brokenLinePrefab: {fileID: 0}
+  linePrefab: {fileID: 6393944718673501876, guid: 157408029d3d8494c859b429f3869f3a, type: 3}
 --- !u!114 &1464943639
 MonoBehaviour:
   m_ObjectHideFlags: 0
