@@ -18,13 +18,13 @@ namespace TurboEsprit
         {
             get
             {
-                // Traffic lights appear only in 4-way intersections where at least one of the road has 6 lanes.
+                // Traffic lights appear only in 4-way intersections where both streets have at least 4 lanes and at least one has 6 lanes.
                 if (!isFourWayIntersection) return false;
 
                 Street northSouthStreet = northStreet ?? southStreet;
                 Street eastWestStreet = eastStreet ?? westStreet;
 
-                return northSouthStreet.lanesCount == 6 || eastWestStreet.lanesCount == 6;
+                return northSouthStreet.lanesCount >= 4 && eastWestStreet.lanesCount >= 4 && (northSouthStreet.lanesCount == 6 || eastWestStreet.lanesCount == 6);
             }
         }
 
@@ -67,6 +67,7 @@ namespace TurboEsprit
             GameObject road = streetPieces.Instantiate(streetPieces.roadPrefab, intersectionGameObject);
             road.transform.localScale = new Vector3(size.x, 1, size.y);
 
+            // Place sidewalk corners or sides.
             void CreateCorner(float rotation, float x, float z)
             {
                 GameObject corner = streetPieces.Instantiate(streetPieces.sidewalkCornerPrefab, intersectionGameObject);
@@ -104,6 +105,90 @@ namespace TurboEsprit
             {
                 GameObject sidewalk = streetPieces.Instantiate(streetPieces.sidewalkPrefab, intersectionGameObject);
                 sidewalk.transform.localScale = new Vector3(City.sidewalkWidth, 1, size.y);
+            }
+
+            // Place lines if one street has priority.
+            bool hasLinesNorthSouth = false;
+            bool hasLinesEastWest = false;
+
+            Street northSouthStreet = northStreet ?? southStreet;
+            Street eastWestStreet = eastStreet ?? westStreet;
+
+            if (isFourWayIntersection)
+            {
+                // 4-way intersections have lines where there are no stop signs on both ends.
+                hasLinesEastWest = !HasStopLineForStreet(eastStreet) && !HasStopLineForStreet(westStreet);
+                hasLinesNorthSouth = !HasStopLineForStreet(northStreet) && !HasStopLineForStreet(southStreet);
+            }
+            else if (isTIntersection)
+            {
+                // T intersections always have priority on the street that doesn't end.
+                hasLinesEastWest = northStreet == null || southStreet == null;
+                hasLinesNorthSouth = eastStreet == null || westStreet == null;
+            }
+
+            if (hasLinesNorthSouth)
+            {
+                var brokenLineXCoordinates = new List<float>();
+
+                if (northSouthStreet.isOneWay)
+                {
+                    brokenLineXCoordinates.Add(size.x / 2);
+                }
+                else
+                {
+                    GameObject centerLine = streetPieces.Instantiate(streetPieces.solidLinePrefab, intersectionGameObject);
+                    centerLine.transform.localScale = new Vector3(1, 1, size.y);
+                    centerLine.transform.localPosition = new Vector3 { x = size.x / 2 };
+                }
+
+                for (int i = 2; i < northSouthStreet.lanesCount; i += 2)
+                {
+                    float sideOffset = City.sidewalkWidth + City.laneWidth * (i / 2);
+                    brokenLineXCoordinates.Add(sideOffset);
+                    brokenLineXCoordinates.Add(size.x - sideOffset);
+                }
+
+                foreach (float xCoordinate in brokenLineXCoordinates)
+                {
+                    GameObject laneLine = streetPieces.Instantiate(streetPieces.brokenLinePrefab, intersectionGameObject);
+                    laneLine.transform.localScale = new Vector3(1, 1, size.y);
+                    laneLine.transform.localPosition = new Vector3 { x = xCoordinate };
+                    StreetPieces.ChangeBrokenLineTiling(laneLine);
+                }
+            }
+
+            if (hasLinesEastWest)
+            {
+                var brokenLineZCoordinates = new List<float>();
+
+                if (eastWestStreet.isOneWay)
+                {
+                    brokenLineZCoordinates.Add(size.y / 2);
+                }
+                else
+                {
+                    GameObject centerLine = streetPieces.Instantiate(streetPieces.solidLinePrefab, intersectionGameObject);
+                    centerLine.transform.localScale = new Vector3(1, 1, size.x);
+                    centerLine.transform.localRotation = Quaternion.Euler(0, 90, 0);
+                    centerLine.transform.localPosition = new Vector3 { z = size.y / 2 };
+                }
+
+                for (int i = 2; i < eastWestStreet.lanesCount; i += 2)
+                {
+                    float sideOffset = City.sidewalkWidth + City.laneWidth * (i / 2);
+                    brokenLineZCoordinates.Add(sideOffset);
+                    brokenLineZCoordinates.Add(size.y - sideOffset);
+                }
+
+                foreach (float zCoordinate in brokenLineZCoordinates)
+                {
+                    GameObject laneLine = streetPieces.Instantiate(streetPieces.brokenLinePrefab, intersectionGameObject);
+                    laneLine.transform.localScale = new Vector3(1, 1, size.x);
+                    laneLine.transform.localRotation = Quaternion.Euler(0, 90, 0);
+                    laneLine.transform.localPosition = new Vector3 { z = zCoordinate };
+                    StreetPieces.ChangeBrokenLineTiling(laneLine);
+                }
             }
         }
 

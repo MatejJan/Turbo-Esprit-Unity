@@ -343,10 +343,11 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 0d4622d503b2f47b2b90ed4035b618a7, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  roadPrefab: {fileID: 6234614896285916889, guid: 41bf2a525eaf940a8b78201b3249d712, type: 3}
-  sidewalkPrefab: {fileID: 6105768712338597580, guid: 909453cd163274ebbbaed17dcbe33b8c, type: 3}
-  sidewalkCornerPrefab: {fileID: 1329366099145433304, guid: c6d109b4b041845bfbd574f8b9e79050, type: 3}
-  linePrefab: {fileID: 6393944718673501876, guid: 157408029d3d8494c859b429f3869f3a, type: 3}
+  roadPrefab: {fileID: 3303218405488621233, guid: 6ad59bbc8bcec4ea9a1953382b4059c3, type: 3}
+  sidewalkPrefab: {fileID: 5384628885097100273, guid: 7077cc0e1ef5c4088af44a478d698451, type: 3}
+  sidewalkCornerPrefab: {fileID: 233208981484512218, guid: 80fa4bf3accbf47ab8f622090b36e57d, type: 3}
+  solidLinePrefab: {fileID: 1004692276750054146, guid: 905b5163b3c88432687ac2932dd7c903, type: 3}
+  brokenLinePrefab: {fileID: 4146988397555265567, guid: 5d7fd51f3fd43489bb2eab39ae2b3b31, type: 3}
 --- !u!114 &1464943639
 MonoBehaviour:
   m_ObjectHideFlags: 0

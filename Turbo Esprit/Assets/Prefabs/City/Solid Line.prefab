@@ -1,12 +1,12 @@
 %YAML 1.1
 %TAG !u! tag:unity3d.com,2011:
---- !u!114 &5709533344800842899
+--- !u!114 &5168525755774567206
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 3303218405488621233}
+  m_GameObject: {fileID: 1004692276750054146}
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 8233d90336aea43098adf6dbabd606a2, type: 3}
@@ -14,7 +14,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   m_MeshFormatVersion: 1
   m_Faces:
-  - m_Indexes: 020000000300000004000000030000000500000004000000000000000200000001000000020000000400000001000000040000000500000007000000050000000800000007000000010000000400000006000000040000000700000006000000
+  - m_Indexes: 000000000100000002000000010000000300000002000000
     m_SmoothingGroup: 0
     m_Uv:
       m_UseWorldSpace: 0
@@ -26,50 +26,30 @@ MonoBehaviour:
       m_Offset: {x: 0, y: 0}
       m_Rotation: 0
       m_Anchor: 9
-    m_Material: {fileID: 0}
+    m_Material: {fileID: 2100000, guid: c22777d6e868e4f2fb421913386b154e, type: 2}
     m_SubmeshIndex: 0
     m_ManualUV: 0
     elementGroup: 0
     m_TextureGroup: -1
   m_SharedVertices:
   - m_Vertices: 00000000
-  - m_Vertices: 02000000
   - m_Vertices: 01000000
-  - m_Vertices: 04000000
+  - m_Vertices: 02000000
   - m_Vertices: 03000000
-  - m_Vertices: 05000000
-  - m_Vertices: 06000000
-  - m_Vertices: 07000000
-  - m_Vertices: 08000000
   m_SharedTextures: []
   m_Positions:
-  - {x: 0, y: 0, z: 0}
-  - {x: 0.5, y: 0, z: 0}
-  - {x: 0, y: 0, z: 0.5}
-  - {x: 0, y: 0, z: 1}
-  - {x: 0.5, y: 0, z: 0.5}
-  - {x: 0.5, y: 0, z: 1}
-  - {x: 1, y: 0, z: 0}
-  - {x: 1, y: 0, z: 0.5}
-  - {x: 1, y: 0, z: 1}
+  - {x: -0.1, y: 0.01, z: 0}
+  - {x: -0.1, y: 0.01, z: 1}
+  - {x: 0.1, y: 0.01, z: 0}
+  - {x: 0.1, y: 0.01, z: 1}
   m_Textures0:
-  - {x: 0, y: 0}
-  - {x: 0.5, y: 0}
-  - {x: 0, y: 0.5}
-  - {x: 0, y: 1}
-  - {x: 0.5, y: 0.5}
-  - {x: 0.5, y: 1}
-  - {x: 1, y: 0}
-  - {x: 1, y: 0.5}
-  - {x: 1, y: 1}
+  - {x: -0.1, y: 0}
+  - {x: -0.1, y: 1}
+  - {x: 0.1, y: 0}
+  - {x: 0.1, y: 1}
   m_Textures2: []
   m_Textures3: []
   m_Tangents:
-  - {x: 1, y: 0, z: 0, w: -1}
-  - {x: 1, y: 0, z: 0, w: -1}
-  - {x: 1, y: 0, z: 0, w: -1}
-  - {x: 1, y: 0, z: 0, w: -1}
-  - {x: 1, y: 0, z: 0, w: -1}
   - {x: 1, y: 0, z: 0, w: -1}
   - {x: 1, y: 0, z: 0, w: -1}
   - {x: 1, y: 0, z: 0, w: -1}
@@ -87,7 +67,7 @@ MonoBehaviour:
   m_SelectedFaces: 
   m_SelectedEdges: []
   m_SelectedVertices: 
---- !u!1001 &2318738684833240717
+--- !u!1001 &3326445570790206
 PrefabInstance:
   m_ObjectHideFlags: 0
   serializedVersion: 2
@@ -96,21 +76,17 @@ PrefabInstance:
     m_Modifications:
     - target: {fileID: 1007314481365082172, guid: cd568d62f1d264584bef592132367bc4, type: 3}
       propertyPath: m_Name
-      value: Road
+      value: Solid Line
       objectReference: {fileID: 0}
     - target: {fileID: 1790986651420256226, guid: cd568d62f1d264584bef592132367bc4, type: 3}
       propertyPath: m_Materials.Array.data[0]
       value: 
-      objectReference: {fileID: 2100000, guid: 345721131274a4ce783d8587927323c0, type: 2}
+      objectReference: {fileID: 2100000, guid: 9339fe2c344894fddb04d79798bcb79a, type: 2}
     - target: {fileID: 2109841457187880309, guid: cd568d62f1d264584bef592132367bc4, type: 3}
       propertyPath: m_Mesh
       value: 
       objectReference: {fileID: 0}
     - target: {fileID: 3666319347798041164, guid: cd568d62f1d264584bef592132367bc4, type: 3}
-      propertyPath: m_Mesh
-      value: 
-      objectReference: {fileID: 0}
-    - target: {fileID: 4381530930719033871, guid: cd568d62f1d264584bef592132367bc4, type: 3}
       propertyPath: m_Mesh
       value: 
       objectReference: {fileID: 0}
@@ -160,8 +136,8 @@ PrefabInstance:
       objectReference: {fileID: 0}
     m_RemovedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: cd568d62f1d264584bef592132367bc4, type: 3}
---- !u!1 &3303218405488621233 stripped
+--- !u!1 &1004692276750054146 stripped
 GameObject:
   m_CorrespondingSourceObject: {fileID: 1007314481365082172, guid: cd568d62f1d264584bef592132367bc4, type: 3}
-  m_PrefabInstance: {fileID: 2318738684833240717}
+  m_PrefabInstance: {fileID: 3326445570790206}
   m_PrefabAsset: {fileID: 0}

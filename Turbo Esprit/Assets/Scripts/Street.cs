@@ -72,48 +72,37 @@ namespace TurboEsprit
             sidewalkRight.transform.localPosition = new Vector3 { x = width - City.sidewalkWidth };
 
             // Place lane division lines.
-            var dashedLineXCoordinates = new List<float>();
+            var brokenLineXCoordinates = new List<float>();
 
             if (isOneWay)
             {
-                dashedLineXCoordinates.Add(width / 2);
+                brokenLineXCoordinates.Add(width / 2);
             }
             else
             {
-                GameObject centerLine = streetPieces.Instantiate(streetPieces.linePrefab, streetGameObject);
+                GameObject centerLine = streetPieces.Instantiate(streetPieces.solidLinePrefab, streetGameObject);
                 centerLine.transform.localScale = new Vector3(1, 1, length);
                 centerLine.transform.localPosition = new Vector3 { x = width / 2 };
             }
 
-            for (int i = 2; i < lanesCount; i++)
+            for (int i = 2; i < lanesCount; i += 2)
             {
                 float sideOffset = City.sidewalkWidth + City.laneWidth * (i / 2);
-                dashedLineXCoordinates.Add(sideOffset);
-                dashedLineXCoordinates.Add(width - sideOffset);
+                brokenLineXCoordinates.Add(sideOffset);
+                brokenLineXCoordinates.Add(width - sideOffset);
             }
 
-            void AddDashedSegment(float z)
+            foreach (float xCoordinate in brokenLineXCoordinates)
             {
-                foreach (float xCoordinate in dashedLineXCoordinates)
-                {
-                    GameObject line = streetPieces.Instantiate(streetPieces.linePrefab, streetGameObject);
-                    line.transform.localScale = new Vector3(1, 1, City.dashedLineLength);
-                    line.transform.localPosition = new Vector3 { x = xCoordinate, z = z - City.dashedLineLength / 2 };
-                }
-            }
-
-            int dashedSegmentsHalfCount = Mathf.FloorToInt((length - City.dashedLineLength) / 2 / City.dashedLineSpacing);
-            int dashedSegmentsCount = dashedSegmentsHalfCount * 2 + 1;
-            float dashedSegmentsStart = (length - City.dashedLineLength) / 2 - City.dashedLineSpacing * dashedSegmentsHalfCount;
-
-            for (int i = 0; i < dashedSegmentsCount; i++)
-            {
-                AddDashedSegment(dashedSegmentsStart + City.dashedLineSpacing * i);
+                GameObject laneLine = streetPieces.Instantiate(streetPieces.brokenLinePrefab, streetGameObject);
+                laneLine.transform.localScale = new Vector3(1, 1, length);
+                laneLine.transform.localPosition = new Vector3 { x = xCoordinate };
+                StreetPieces.ChangeBrokenLineTiling(laneLine);
             }
 
             GameObject CreateStopLine()
             {
-                GameObject stopLine = streetPieces.Instantiate(streetPieces.linePrefab, streetGameObject);
+                GameObject stopLine = streetPieces.Instantiate(streetPieces.solidLinePrefab, streetGameObject);
 
                 float lineLength = roadWidth;
                 if (!isOneWay) lineLength /= 2;
