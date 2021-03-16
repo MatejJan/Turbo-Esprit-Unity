@@ -1,0 +1,48 @@
+# File produced by Open Asset Import Library (http://www.assimp.sf.net)
+# (assimp v5.0.639693989)
+
+newmtl Material__54_Standard_1Sub0
+Kd 1 1 1
+Ks 0 0 0
+Ke 0 0 0
+Ns 3.2
+illum 2
+map_Kd turboesprit.dds
+
+newmtl Material__54_windowSub1
+Kd 0.301961 0.301961 0.301961
+Ks 0.44999999 0.44999999 0.44999999
+Ke 0 0 0
+Ns 3.2
+illum 2
+
+newmtl Material__54_PlasticSub2
+Kd 0.133333 0.133333 0.133333
+Ks 0.095686004 0.095686004 0.095686004
+Ke 0 0 0
+Ns 1.6
+illum 2
+
+newmtl Material__54_4_-_DefaultSub3
+Kd 1 1 1
+Ks 0 0 0
+Ke 0 0 0
+illum 1
+map_Kd license.dds
+
+newmtl Material__54_5_-_DefaultSub4
+Kd 1 1 1
+Ks 0.44999999 0.44999999 0.44999999
+Ke 0 0 0
+Ns 3.2
+illum 2
+map_Kd license.dds
+
+newmtl Material__54_10_-_DefaultSub5
+Kd 1 1 1
+Ks 0 0 0
+Ke 0 0 0
+Ns 3.2
+illum 2
+map_Kd wheel.dds
+
