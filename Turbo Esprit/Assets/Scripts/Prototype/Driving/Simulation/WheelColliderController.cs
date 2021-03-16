@@ -2,7 +2,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-namespace TurboEsprit.Prototype.Driving
+namespace TurboEsprit.Prototype.Driving.Simulation
 {
     public class WheelColliderController : MonoBehaviour
     {

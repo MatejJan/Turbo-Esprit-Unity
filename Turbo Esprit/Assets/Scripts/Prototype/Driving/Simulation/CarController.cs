@@ -2,7 +2,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-namespace TurboEsprit.Prototype.Driving
+namespace TurboEsprit.Prototype.Driving.Simulation
 {
     public class CarController : MonoBehaviour
     {
@@ -11,7 +11,6 @@ namespace TurboEsprit.Prototype.Driving
         public WheelCollider wheelColliderBackLeft;
         public WheelCollider wheelColliderBackRight;
 
-        [Range(0, 150)] public float targetSpeedMph;
         [Range(0, 150)] public float speedMph;
         [Range(-1, 10000)] public float desiredEngineRpm;
         [Range(-1, 10000)] public float calculatedEngineRpm;
