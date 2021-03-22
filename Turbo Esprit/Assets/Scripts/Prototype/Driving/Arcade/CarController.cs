@@ -4,7 +4,7 @@ using UnityEngine;
 
 namespace TurboEsprit.Prototype.Driving.Arcade
 {
-    public class CarController : MonoBehaviour
+    public class CarController : MonoBehaviour, IDashboardProvider
     {
         public Transform wheelFrontLeftTransform;
         public Transform wheelFrontRightTransform;
@@ -15,8 +15,6 @@ namespace TurboEsprit.Prototype.Driving.Arcade
         public float steeringFactor = 1;
         public float steeringPower = -1;
 
-        [Range(0, 150)] public float speedMph;
-        [Range(-1, 10000)] public float engineRpm;
         [Range(-350, 350)] public float torque;
 
         [Range(0, 1)] public float accelerator = 0;
@@ -45,13 +43,16 @@ namespace TurboEsprit.Prototype.Driving.Arcade
         private float maxDesiredRpm = 7000;
         private float minDesiredRpm = 700;
 
+        public float speedMph { get; private set; }
+        public float engineRpm { get; private set; }
+
         private void FixedUpdate()
         {
             // Determine speed.
             float absoluteSpeed = Mathf.Abs(speed);
 
             float metersPerSecondToMilesPerHour = 2.23694f;
-            speedMph = speed * metersPerSecondToMilesPerHour;
+            speedMph = absoluteSpeed * metersPerSecondToMilesPerHour;
 
             // Apply rotation to wheels.
             float wheelRadius = 0.3f;

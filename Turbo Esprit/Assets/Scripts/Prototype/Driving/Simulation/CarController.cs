@@ -4,17 +4,15 @@ using UnityEngine;
 
 namespace TurboEsprit.Prototype.Driving.Simulation
 {
-    public class CarController : MonoBehaviour
+    public class CarController : MonoBehaviour, IDashboardProvider
     {
         public WheelCollider wheelColliderFrontLeft;
         public WheelCollider wheelColliderFrontRight;
         public WheelCollider wheelColliderBackLeft;
         public WheelCollider wheelColliderBackRight;
 
-        [Range(0, 150)] public float speedMph;
         [Range(-1, 10000)] public float desiredEngineRpm;
         [Range(-1, 10000)] public float calculatedEngineRpm;
-        [Range(-1, 10000)] public float engineRpm;
         [Range(-1, 2000)] public float frontWheelRpm;
         [Range(-1, 2000)] public float backWheelRpm;
         [Range(-1, 2000)] public float calculatedWheelRpm;
@@ -45,6 +43,9 @@ namespace TurboEsprit.Prototype.Driving.Simulation
         private float maxDesiredRpm = 7000;
         private float minDesiredRpm = 700;
 
+        public float speedMph { get; private set; }
+        public float engineRpm { get; private set; }
+
         private void Awake()
         {
             rigidbody = GetComponent<Rigidbody>();
@@ -61,7 +62,7 @@ namespace TurboEsprit.Prototype.Driving.Simulation
             float absoluteSpeed = rigidbody.velocity.magnitude;
 
             float metersPerSecondToMilesPerHour = 2.23694f;
-            speedMph = speed * metersPerSecondToMilesPerHour;
+            speedMph = absoluteSpeed * metersPerSecondToMilesPerHour;
 
             // Control steering.
             float maxSteeringAngle = 30;
