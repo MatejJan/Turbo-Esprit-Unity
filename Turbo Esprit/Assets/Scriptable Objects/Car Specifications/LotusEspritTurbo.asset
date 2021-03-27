@@ -1,0 +1,42 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 3ce6925da731540b8b62d725a5f11616, type: 3}
+  m_Name: LotusEspritTurbo
+  m_EditorClassIdentifier: 
+  torqueCurve:
+  - {x: 0, y: 0}
+  - {x: 2500, y: 320}
+  - {x: 4000, y: 350}
+  - {x: 6000, y: 310}
+  - {x: 7000, y: 260}
+  reverseGearRatio: -3.15
+  forwardGearRatios:
+  - 0
+  - 2.92
+  - 1.94
+  - 1.32
+  - 0.97
+  - 0.75
+  finalDriveRatio: 3.88
+  redlineValueRpm: 7000
+  engineAngularMass: 0.5
+  wheelsToEngineEqualizationTime: 0.1
+  engineToWheelsEqualizationTime: 0.1
+  engineBrakingCoefficient: 0.4
+  maxSteeringAngleDegrees: 30
+  maxSteeringAngleDeltaRateDegrees: 30
+  maxBrakingTorque: 1000
+  starterTorque: 50
+  starterStopRpm: 1200
+  idleAirControlStopRpm: 1700
+  revLimiterStartRpm: 6500
+  revLimiterStopRpm: 7600

@@ -13,7 +13,11 @@ namespace TurboEsprit
         public Intersection startIntersection;
         public Intersection endIntersection;
 
+        public Bounds bounds { get; private set; }
+
         private GameObject gameObject;
+
+        public StreetOrientation orientation => startIntersection.position.y == endIntersection.position.y ? StreetOrientation.EastWest : StreetOrientation.NorthSouth;
 
         public void Generate(City city)
         {
@@ -29,9 +33,10 @@ namespace TurboEsprit
             float width = roadWidth + 2 * City.sidewalkWidth;
             float length;
 
-            if (startIntersection.position.y == endIntersection.position.y)
+            Vector3 boundsSize;
+
+            if (orientation == StreetOrientation.EastWest)
             {
-                // This is a west->east street.
                 gameObject.name = $"Street ({startIntersection.position.x}-{startIntersection.position.x}, {endIntersection.position.y})";
 
                 length = endIntersection.position.x - startIntersection.position.x - startIntersectionHalfSize.x - endIntersectionHalfSize.x;
@@ -44,10 +49,11 @@ namespace TurboEsprit
 
                 // Rotate the road so the local Z axis goes in the positive global X direction.
                 gameObject.transform.localRotation = Quaternion.Euler(0, 90, 0);
+
+                boundsSize = new Vector3(length, City.boundsHeight, width);
             }
             else
             {
-                // This is a south->north street.
                 gameObject.name = $"Street ({startIntersection.position.x}, {startIntersection.position.y}-{endIntersection.position.y})";
 
                 length = endIntersection.position.y - startIntersection.position.y - startIntersectionHalfSize.y - endIntersectionHalfSize.y;
@@ -57,7 +63,16 @@ namespace TurboEsprit
                     x = startIntersection.position.x - width / 2,
                     z = startIntersection.position.y + startIntersectionHalfSize.y
                 };
+
+                boundsSize = new Vector3(width, City.boundsHeight, length);
             }
+
+            // Set bounds.
+            bounds = new Bounds
+            {
+                min = gameObject.transform.localPosition + new Vector3(0, City.boundsBaseY, 0),
+                max = gameObject.transform.localPosition + boundsSize
+            };
 
             // Place prefabs.
             StreetPieces streetPieces = city.streetPieces;

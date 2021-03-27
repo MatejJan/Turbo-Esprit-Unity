@@ -16,6 +16,8 @@ namespace TurboEsprit
 
         private GameObject gameObject;
 
+        public Bounds bounds { get; private set; }
+
         public bool hasTrafficLights
         {
             get
@@ -61,6 +63,13 @@ namespace TurboEsprit
             {
                 x = position.x - size.x / 2,
                 z = position.y - size.y / 2
+            };
+
+            // Set bounds.
+            bounds = new Bounds
+            {
+                center = new Vector3(position.x, City.boundsBaseY + City.boundsHeight / 2, position.y),
+                size = new Vector3(size.x, City.boundsHeight, size.y)
             };
 
             // Place prefabs.

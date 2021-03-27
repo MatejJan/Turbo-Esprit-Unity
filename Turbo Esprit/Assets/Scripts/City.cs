@@ -11,17 +11,16 @@ namespace TurboEsprit
         public const float sidewalkWidth = 3;
         public const float lineWidth = 0.2f;
         public const float brokenLineSpacing = 5;
+        public const float boundsHeight = 11;
+        public const float boundsBaseY = -1;
 
-        public StreetLayout streetLayout;
-        public StreetPieces streetPieces;
+        public StreetLayout streetLayout { get; private set; }
+        public StreetPieces streetPieces { get; private set; }
 
         private void Awake()
         {
             streetPieces = GetComponent<StreetPieces>();
-        }
 
-        private void Start()
-        {
             // Generate the Wellington layout.
             streetLayout = new Levels.Wellington();
             Generate();

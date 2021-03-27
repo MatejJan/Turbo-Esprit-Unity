@@ -6,16 +6,54 @@ namespace TurboEsprit.Prototype.Driving.Simulation
 {
     public class CarController : MonoBehaviour, IDashboardProvider
     {
+        // Car constants
+
+        private readonly Vector2[] torqueCurve = new[] {
+            new Vector2(0, 0),
+            new Vector2(2500, 320),
+            new Vector2(4000, 350),
+            new Vector2(6000, 310),
+            new Vector2(7000, 260)
+        };
+
+        private readonly float[] forwardGearRatios = new[] { 0, 2.92f, 1.94f, 1.32f, 0.97f, 0.75f };
+        private const float reverseGearRatio = -3.15f;
+        private const float finalDriveRatio = 3.88f;
+        private const int poweredWheelsCount = 2;
+        private const float wheelCircumference = Mathf.PI * 0.6f;
+        private const float idleRpm = 600;
+        private const float idleAngularSpeed = idleRpm / 30 * Mathf.PI;
+        private const float redlineValueRpm = 7200;
+        private const float engineAngularMass = 1;
+
+        // Driver constants
+
+        private const float maxDesiredRpm = 7000;
+        private const float minDesiredRpm = 700;
+
+        // Other constants
+
+        private const float wheelRpmSmoothingFactor = 0.8f;
+        private const float metersPerSecondToMilesPerHour = 2.23694f;
+
+        private const float engineEqualizationFactor = 0.95f;
+        private const float torqueTransferEqualizationTime = 0.1f;
+
+        // Fields
+
         public WheelCollider wheelColliderFrontLeft;
         public WheelCollider wheelColliderFrontRight;
         public WheelCollider wheelColliderBackLeft;
         public WheelCollider wheelColliderBackRight;
 
-        [Range(-1, 10000)] public float desiredEngineRpm;
-        [Range(-1, 10000)] public float calculatedEngineRpm;
+        [Range(-1, 1000)] public float engineAngularSpeed;
+        [Range(-1, 1000)] public float wheelBasedEngineAngularSpeed;
         [Range(-1, 2000)] public float frontWheelRpm;
         [Range(-1, 2000)] public float backWheelRpm;
-        [Range(-1, 2000)] public float calculatedWheelRpm;
+        [Range(-1, 2000)] public float backWheelRpmSmooth;
+        [Range(-100, 500)] public float wheelAngularSpeed;
+        [Range(-100, 500)] public float engineBasedWheelAngularSpeed;
+        [Range(-1, 2000)] public float wheelRpmAssumingFullTraction;
         [Range(-350, 350)] public float torque;
         [Range(-3500, 3500)] public float wheelTorque;
         [Range(-1, 1000)] public float brakeTorque;
@@ -26,25 +64,14 @@ namespace TurboEsprit.Prototype.Driving.Simulation
         [Range(-1, 1)] public float steering = 0;
 
         private new Rigidbody rigidbody;
+        private float wheelAngularMass;
 
-        private Vector2[] torqueCurve = new[] {
-            new Vector2(0, 0),
-            new Vector2(2500, 320),
-            new Vector2(4000, 350),
-            new Vector2(6000, 310),
-            new Vector2(7000, 260)
-        };
-
-        private float[] forwardGearRatios = new[] { 0, 2.92f, 1.94f, 1.32f, 0.97f, 0.75f };
-        private float reverseGearRatio = -3.15f;
-        private float finalDriveRatio = 3.88f;
-
-        private float rpmRedlineValue = 7200;
-        private float maxDesiredRpm = 7000;
-        private float minDesiredRpm = 700;
+        // Properties
 
         public float speedMph { get; private set; }
         public float engineRpm { get; private set; }
+
+        // Initialization
 
         private void Awake()
         {
@@ -53,16 +80,31 @@ namespace TurboEsprit.Prototype.Driving.Simulation
 
         private void Start()
         {
+            wheelAngularMass = wheelColliderFrontLeft.mass * Mathf.Pow(wheelColliderFrontLeft.radius, 2);
         }
+
+        // Update
 
         private void FixedUpdate()
         {
-            // Determine speed.
-            float speed = Vector3.Dot(rigidbody.velocity, transform.forward);
-            float absoluteSpeed = rigidbody.velocity.magnitude;
+            // Calculate derived variables.
+            float totalDriveRatio = forwardGearRatios[gear] * finalDriveRatio;
 
-            float metersPerSecondToMilesPerHour = 2.23694f;
-            speedMph = absoluteSpeed * metersPerSecondToMilesPerHour;
+            // Read values from other systems.
+            frontWheelRpm = wheelColliderFrontLeft.rpm;
+            backWheelRpm = wheelColliderBackLeft.rpm;
+
+            float wheelRpmSmoothingParameter = GetSmoothingParameter(wheelRpmSmoothingFactor);
+            backWheelRpmSmooth = Mathf.Lerp(backWheelRpmSmooth, backWheelRpm > 0.1 ? backWheelRpm : 0, wheelRpmSmoothingParameter);
+            wheelAngularSpeed = backWheelRpmSmooth / 30 * Mathf.PI;
+
+            // Determine speed.
+            wheelRpmAssumingFullTraction = engineRpm / totalDriveRatio;
+            float speed = backWheelRpmSmooth / 60 * wheelCircumference;
+
+            speedMph = speed * metersPerSecondToMilesPerHour;
+
+            float absoluteSpeed = Mathf.Abs(speed);
 
             // Control steering.
             float maxSteeringAngle = 30;
@@ -75,29 +117,43 @@ namespace TurboEsprit.Prototype.Driving.Simulation
             wheelColliderFrontRight.steerAngle = steerAngle;
 
             // Control torque.
-            float totalDriveRatio = forwardGearRatios[gear] * finalDriveRatio;
 
             accelerator = Input.GetAxis("Accelerator");
             brake = Input.GetAxis("Brake");
             clutch = Input.GetAxis("Clutch");
 
-            desiredEngineRpm = Mathf.Lerp(minDesiredRpm, maxDesiredRpm, accelerator);
+            // Equalize engine and wheel rotation
+            wheelBasedEngineAngularSpeed = wheelAngularSpeed * totalDriveRatio;
 
-            float wheelCircumference = Mathf.PI * 0.6f;
-            calculatedWheelRpm = speed / wheelCircumference * 60;
-            calculatedEngineRpm = calculatedWheelRpm * totalDriveRatio;
+            if (wheelBasedEngineAngularSpeed < engineAngularSpeed)
+            {
+                float equalizationParameter = GetSmoothingParameter(engineEqualizationFactor) * (1 - clutch);
+                engineAngularSpeed = Mathf.Lerp(engineAngularSpeed, wheelBasedEngineAngularSpeed, equalizationParameter);
+            }
 
-            float unboundEngineRpm = Mathf.Lerp(calculatedEngineRpm, desiredEngineRpm, clutch);
-            engineRpm = Mathf.Min(unboundEngineRpm, rpmRedlineValue);
+            // Calculate new engine angular speed.
+            engineRpm = engineAngularSpeed * 30 / Mathf.PI;
 
-            float accelerationTorque = GetTorqueForRpm(engineRpm) * accelerator;
+            float engineTorque = GetTorqueForRpm(engineRpm);
+            float accelerationTorque = engineTorque * accelerator;
 
-            float engineBrakingCoefficient = 0.74f;
-            float engineBrakingTorque = engineBrakingCoefficient * engineRpm / 60;
-            if (Mathf.Abs(engineBrakingTorque) < 1) engineBrakingTorque = 0;
+            float engineBrakingCoefficient = 2;
+            float engineRpmAboveIdle = Mathf.Max(0, engineRpm - idleRpm);
+            float engineBrakingTorque = engineBrakingCoefficient * engineRpmAboveIdle / 60;
 
             torque = accelerationTorque - engineBrakingTorque;
-            wheelTorque = torque * totalDriveRatio * (1 - clutch);
+
+            float engineAngularAcceleration = torque / engineAngularMass;
+            engineAngularSpeed += engineAngularAcceleration * Time.fixedDeltaTime;
+
+            // Transfer torque to the wheels.
+            engineBasedWheelAngularSpeed = engineAngularSpeed / totalDriveRatio;
+
+            float angularSpeedDifference = engineBasedWheelAngularSpeed - wheelAngularSpeed;
+            float equalizationAngularAcceleration = angularSpeedDifference / torqueTransferEqualizationTime;
+            float eqalizationTorque = equalizationAngularAcceleration * wheelAngularMass;
+
+            wheelTorque = Mathf.Clamp(eqalizationTorque, 0, engineTorque * totalDriveRatio) * (1 - clutch);
 
             wheelColliderBackLeft.motorTorque = wheelTorque;
             wheelColliderBackRight.motorTorque = wheelTorque;
@@ -125,8 +181,6 @@ namespace TurboEsprit.Prototype.Driving.Simulation
             Vector3 dragForce = -rigidbody.velocity.normalized * dragForceCoefficient * frontalArea * aerodynamicForceFactor;
             rigidbody.AddForce(dragForce);
 
-            frontWheelRpm = wheelColliderFrontLeft.rpm;
-            backWheelRpm = wheelColliderBackLeft.rpm;
         }
 
         private void Update()
@@ -140,6 +194,27 @@ namespace TurboEsprit.Prototype.Driving.Simulation
             {
                 gear--;
             }
+
+            if (Input.GetButtonDown("Ignition"))
+            {
+                StartCoroutine(IgnitionCoroutine());
+            }
+        }
+
+        IEnumerator IgnitionCoroutine()
+        {
+            while (engineAngularSpeed < idleAngularSpeed)
+            {
+                engineAngularSpeed += idleAngularSpeed * Time.deltaTime;
+                yield return null;
+            }
+        }
+
+        // Helpers
+
+        private float GetSmoothingParameter(float value)
+        {
+            return 1 - Mathf.Pow(1 - value, Time.fixedDeltaTime);
         }
 
         private float GetTorqueForRpm(float rpm)
