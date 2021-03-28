@@ -1036,9 +1036,18 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 6ef08c72c218e49e1bd4656d69df267a, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  airFuelIntake: 0
-  minAirFuelIntake: 0
-  maxAirFuelIntake: 0
+  totalDriveRatio: 0
+  engineToTransmissionFactor: 0
+  engineAngularSpeed: 0
+  wheelBasedEngineAngularSpeed: 0
+  wheelAngularSpeed: 0
+  engineBasedWheelAngularSpeed: 0
+  loadTorque: 0
+  combustionTorque: 0
+  torque: 0
+  driveAxlesEqalizationTorque: 0
+  maxDriveAxlesTorque: 0
+  wheelTorque: 0
   specifications: {fileID: 11400000, guid: db9b15fa6def14da4bf2641d1392be1c, type: 2}
   wheelColliderFrontLeft: {fileID: 6795690217805989207}
   wheelColliderFrontRight: {fileID: 501933091}
@@ -1181,6 +1190,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: b993c834a7ba6467395a1e854334de4c, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  shiftingPedalChangeTime: 0.3
+  shiftingGearshiftChangeTime: 0.3
 --- !u!82 &1735467173
 AudioSource:
   m_ObjectHideFlags: 0

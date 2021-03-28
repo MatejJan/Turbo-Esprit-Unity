@@ -11,10 +11,11 @@ namespace TurboEsprit
         public float reverseGearRatio;
         public float[] forwardGearRatios;
         public float finalDriveRatio;
+        public DrivetrainType drivetrainType;
         public float redlineValueRpm;
         public float engineAngularMass;
-        public float wheelsToEngineEqualizationTime;
-        public float engineToWheelsEqualizationTime;
+        public float wheelsToEngineEqualizationFactor;
+        public float engineToWheelsEqualizationFactor;
         public float engineBrakingCoefficient;
         public float maxSteeringAngleDegrees;
         public float maxSteeringAngleDeltaRateDegrees;
@@ -24,5 +25,15 @@ namespace TurboEsprit
         public float idleAirControlStopRpm;
         public float revLimiterStartRpm;
         public float revLimiterStopRpm;
+        public float downforceCoefficient;
+        public float dragForceCoefficient;
+        public float frontalArea;
+    }
+
+    public enum DrivetrainType
+    {
+        FrontWheelDrive,
+        RearWheelDrive,
+        FourWheelDrive
     }
 }
