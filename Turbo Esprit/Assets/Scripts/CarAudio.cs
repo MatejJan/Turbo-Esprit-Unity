@@ -14,7 +14,7 @@ namespace TurboEsprit
 
         [SerializeField] private AudioSource engineClosedThrottleAudioSource;
         [SerializeField] private float engineClosedThrottleAudioClipRpm;
-        [SerializeField] private VolumeLimits engineclosedThrottleAudioSourceVolumeLimits;
+        [SerializeField] private VolumeLimits engineClosedThrottleAudioSourceVolumeLimits;
 
         [SerializeField] private AudioSource ignitionAudioSource;
         private Car.EngineState previousEngineState = Car.EngineState.Off;
@@ -33,7 +33,7 @@ namespace TurboEsprit
 
             // Crossfade between the opened and closed clips depending on the gas pedal position.
             VolumeLimits openedLimits = engineOpenedThrottleAudioSourceVolumeLimits;
-            VolumeLimits closedLimits = engineclosedThrottleAudioSourceVolumeLimits;
+            VolumeLimits closedLimits = engineClosedThrottleAudioSourceVolumeLimits;
 
             engineOpenedThrottleAudioSource.volume = Mathf.Lerp(openedLimits.min, openedLimits.max, car.acceleratorPedalPosition);
             engineClosedThrottleAudioSource.volume = Mathf.Lerp(closedLimits.min, closedLimits.max, 1 - car.acceleratorPedalPosition);

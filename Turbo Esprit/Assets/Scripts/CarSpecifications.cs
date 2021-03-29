@@ -12,7 +12,6 @@ namespace TurboEsprit
         public float[] forwardGearRatios;
         public float finalDriveRatio;
         public DrivetrainType drivetrainType;
-        public float redlineValueRpm;
         public float engineAngularMass;
         public float wheelsToEngineEqualizationFactor;
         public float engineToWheelsEqualizationFactor;

@@ -18,6 +18,11 @@ namespace TurboEsprit
 
         private void Update()
         {
+            UpdateGearText();
+        }
+
+        private void UpdateGearText()
+        {
             string gearText;
 
             switch (car.gearshiftPosition)

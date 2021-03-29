@@ -22,7 +22,7 @@ namespace TurboEsprit
         [SerializeField] private WheelCollider wheelColliderBackRight;
 
         private float engineAngularSpeed = 0;
-        private float averageDriveWheelRpm = 0;
+        private float averageDriveWheelsRpm = 0;
         private float driveAxlesAngularSpeed = 0;
         private new Rigidbody rigidbody;
 
@@ -126,13 +126,13 @@ namespace TurboEsprit
 
             // Smooth the RPM value to slowly change over time.
             float wheelRpmSmoothingParameter = CalculateSmoothingParameter(wheelRpmSmoothingFactor);
-            averageDriveWheelRpm = Mathf.Lerp(averageDriveWheelRpm, newAverageDriveWheelRpm, wheelRpmSmoothingParameter);
+            averageDriveWheelsRpm = Mathf.Lerp(averageDriveWheelsRpm, newAverageDriveWheelRpm, wheelRpmSmoothingParameter);
 
             // Apply minimum treshold.
-            if (Mathf.Abs(averageDriveWheelRpm) < minWheelRpmThreshold) averageDriveWheelRpm = 0;
+            if (Mathf.Abs(averageDriveWheelsRpm) < minWheelRpmThreshold) averageDriveWheelsRpm = 0;
 
             // Calculate new drive axles angular speed.
-            driveAxlesAngularSpeed = averageDriveWheelRpm * PhysicsHelper.rpmToAngularSpeed;
+            driveAxlesAngularSpeed = averageDriveWheelsRpm * PhysicsHelper.rpmToAngularSpeed;
         }
 
         private void HandleSteering()
