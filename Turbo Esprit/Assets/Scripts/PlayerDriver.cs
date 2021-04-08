@@ -5,110 +5,78 @@ using UnityEngine;
 
 namespace TurboEsprit
 {
-    public class PlayerDriver : MonoBehaviour
+    public class PlayerDriver : Driver
     {
-        [SerializeField] private float shiftingPedalChangeTime;
-        [SerializeField] private float shiftingGearshiftChangeTime;
+        public float targetSpeedMph;
 
-        private Car car;
-        private bool playerHasControl = true;
+        [SerializeField] private float speedChangeRate;
+        [SerializeField] private float roundingSpeedStep;
 
-        private void Awake()
+        private bool waitingForInputSignChange = false;
+        private int speedChangeInputSignBeforeWaiting = 0;
+
+        private bool keepTargetSpeed = true;
+
+        protected override void Update()
         {
-            car = GetComponent<Car>();
+            UpdateTargetSpeed();
+
+            base.Update();
         }
 
-        private void Update()
+        private void UpdateTargetSpeed()
         {
-            HandleInput();
-        }
+            // Read player input.
+            float speedChangeInput = Input.GetAxis("Speed Change");
 
-        private void HandleInput()
-        {
-            car.steeringWheelPosition = Input.GetAxis("Steering");
-
-            if (playerHasControl)
+            // When the car has stopped, we need to get a different input before we react to changes so that braking<->accelerating transition is deliberate.
+            if (waitingForInputSignChange)
             {
-                car.acceleratorPedalPosition = Input.GetAxis("Accelerator");
-                car.brakePedalPosition = Input.GetAxis("Brake");
-                car.clutchPedalPosition = Input.GetAxis("Clutch");
+                int speedChangeInputSign = Math.Sign(speedChangeInput);
+                if (speedChangeInputSign == speedChangeInputSignBeforeWaiting) return;
 
-                if (car.clutchPedalPosition == 1)
+                waitingForInputSignChange = false;
+            }
+
+            // Nothing to do if we're keeping the current speed and no change is requested.
+            if (keepTargetSpeed && speedChangeInput == 0) return;
+
+            if (speedChangeInput != 0)
+            {
+                // We want to change speed so calculate new target speed.
+                float speedChange = speedChangeInput * speedChangeRate * Time.deltaTime;
+                float newTargetSpeed = targetSpeed + speedChange;
+
+                // Make car stop before changing direction.
+                int newTargetSpeedSign = Math.Sign(newTargetSpeed);
+                int carSpeedSign = Math.Sign(car.speed);
+
+                if (carSpeedSign != 0 && newTargetSpeedSign != carSpeedSign)
                 {
-                    if (Input.GetButtonDown("Shift up"))
-                    {
-                        car.gearshiftPosition++;
-                    }
-
-                    if (Input.GetButtonDown("Shift down"))
-                    {
-                        car.gearshiftPosition--;
-                    }
+                    newTargetSpeed = 0;
                 }
-                else
+
+                // Set new target speed.
+                targetSpeed = newTargetSpeed;
+
+                // Start the waiting period for input to change its sign.
+                if (targetSpeed == 0 && car.speed == 0)
                 {
-                    if (Input.GetButtonDown("Shift up"))
-                    {
-                        StartCoroutine(ShiftingCoroutine(1));
-                    }
-
-                    if (Input.GetButtonDown("Shift down"))
-                    {
-                        StartCoroutine(ShiftingCoroutine(-1));
-                    }
+                    waitingForInputSignChange = true;
+                    speedChangeInputSignBeforeWaiting = Math.Sign(speedChangeInput);
                 }
-            }
 
-            if (Input.GetButtonDown("Ignition"))
+                // Don't keep the speed until we stop changing it.
+                keepTargetSpeed = false;
+            }
+            else
             {
-                if (car.engineState == Car.EngineState.Off)
-                {
-                    StartCoroutine(IgnitionCoroutine());
-                }
-                else
-                {
-                    car.ignitionSwitchPosition = Car.IgnitionSwitchPosition.Lock;
-                }
-            }
-        }
-
-        IEnumerator ShiftingCoroutine(int direction)
-        {
-            playerHasControl = false;
-
-            while (car.clutchPedalPosition < 1)
-            {
-                car.acceleratorPedalPosition = Mathf.MoveTowards(car.acceleratorPedalPosition, 0, Time.deltaTime / shiftingPedalChangeTime);
-                car.clutchPedalPosition = Mathf.MoveTowards(car.clutchPedalPosition, 1, Time.deltaTime / shiftingPedalChangeTime);
-                yield return null;
+                // Round the current car speed as the new target.
+                targetSpeed = Mathf.Round(car.speed / roundingSpeedStep) * roundingSpeedStep;
+                keepTargetSpeed = true;
             }
 
-            yield return new WaitForSeconds(shiftingGearshiftChangeTime / 2);
-
-            car.gearshiftPosition += direction;
-
-            yield return new WaitForSeconds(shiftingGearshiftChangeTime / 2);
-
-            while (car.clutchPedalPosition > 0)
-            {
-                car.acceleratorPedalPosition = Mathf.MoveTowards(car.acceleratorPedalPosition, Input.GetAxis("Accelerator"), Time.deltaTime / shiftingPedalChangeTime);
-                car.clutchPedalPosition = Mathf.MoveTowards(car.clutchPedalPosition, 0, Time.deltaTime / shiftingPedalChangeTime);
-                yield return null;
-            }
-
-            playerHasControl = true;
-        }
-
-        IEnumerator IgnitionCoroutine()
-        {
-            car.ignitionSwitchPosition = Car.IgnitionSwitchPosition.Start;
-
-            while (car.engineState != Car.EngineState.On)
-            {
-                yield return null;
-            }
-
-            car.ignitionSwitchPosition = Car.IgnitionSwitchPosition.On;
+            targetSpeedMph = targetSpeed * PhysicsHelper.metersPerSecondToMilesPerHour;
         }
     }
 }

@@ -1168,7 +1168,7 @@ MonoBehaviour:
     max: 1
   engineClosedThrottleAudioSource: {fileID: 1735467174}
   engineClosedThrottleAudioClipRpm: 1330
-  engineclosedThrottleAudioSourceVolumeLimits:
+  engineClosedThrottleAudioSourceVolumeLimits:
     min: 0.5
     max: 1
   ignitionAudioSource: {fileID: 1735467173}
@@ -1184,6 +1184,11 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 6ef08c72c218e49e1bd4656d69df267a, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  accelerator: 0
+  brake: 0
+  clutch: 0
+  gear: 1
+  steering: 0
   specifications: {fileID: 11400000, guid: db9b15fa6def14da4bf2641d1392be1c, type: 2}
   wheelColliderFrontLeft: {fileID: 6795690217805989207}
   wheelColliderFrontRight: {fileID: 501933091}
@@ -1326,8 +1331,19 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: b993c834a7ba6467395a1e854334de4c, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  shiftingPedalChangeTime: 0.2
-  shiftingGearshiftChangeTime: 0.2
+  normalPedalSpeed: 1
+  shiftingPedalSpeed: 5
+  movingOffPedalSpeed: 0.5
+  shiftingDuration: 0.2
+  maxIdlingDuration: 3
+  torqueFactorForDownshiftingWhenAccelerating: 0.5
+  preventShiftingMaxSpeedDifference: 2.24
+  acceleratorChangeRate: 0.01
+  state: 0
+  targetGearshiftPosition: 0
+  targetSpeedMph: 0
+  speedChangeRate: 5
+  roundingSpeedStep: 4.47
 --- !u!82 &1735467173
 AudioSource:
   m_ObjectHideFlags: 0

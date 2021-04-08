@@ -8,7 +8,7 @@ namespace TurboEsprit
     {
         protected override float GetValue()
         {
-            return car.speed * PhysicsHelper.metersPerSecondToMilesPerHour;
+            return Mathf.Abs(car.speed) * PhysicsHelper.metersPerSecondToMilesPerHour;
         }
     }
 }

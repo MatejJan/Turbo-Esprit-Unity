@@ -1,4 +1,3 @@
-using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
@@ -7,8 +6,20 @@ namespace TurboEsprit
 {
     public class Car : MonoBehaviour
     {
+        [Range(0, 1)] public float accelerator = 0;
+        [Range(0, 1)] public float brake = 0;
+        [Range(0, 1)] public float clutch = 0;
+        [Range(0, 5)] public int gear = 1;
+        [Range(-1, 1)] public float steering = 0;
+        [Range(-1000, 0)] public float loadTorque = 0;
+        [Range(-1, 1000)] public float engineTorque = 0;
+        [Range(-1, 3000)] public float wheelTorque = 0;
+        [Range(-1, 1000)] public float engineWheelsAngularSpeed = 0;
+        [Range(-1, 1000)] public float engineActualAngularSpeed = 0;
+
         // Constants
 
+        private const float loadTorqueEstimationFactor = -0.3f;
         private const float wheelRpmSmoothingFactor = 0.8f;
         private const float minWheelRpmThreshold = 1;
 
@@ -24,6 +35,7 @@ namespace TurboEsprit
         private float engineAngularSpeed = 0;
         private float averageDriveWheelsRpm = 0;
         private float driveAxlesAngularSpeed = 0;
+        private int drivenWheelsCount;
         private new Rigidbody rigidbody;
 
         private IgnitionSwitchPosition _ignitionSwitchPosition;
@@ -69,6 +81,8 @@ namespace TurboEsprit
             get => _ignitionSwitchPosition;
             set
             {
+                if (_ignitionSwitchPosition == value) return;
+
                 _ignitionSwitchPosition = value;
 
                 if (_ignitionSwitchPosition == IgnitionSwitchPosition.Start && engineState == EngineState.Off)
@@ -83,14 +97,46 @@ namespace TurboEsprit
             }
         }
 
-        public float speed => Mathf.Abs(driveAxlesAngularSpeed) * wheelColliderFrontLeft.radius;
+        public float speed => driveAxlesAngularSpeed * wheelColliderFrontLeft.radius;
         public float engineRpm => engineAngularSpeed * PhysicsHelper.angularSpeedToRpm;
         public EngineState engineState { get; private set; }
 
         // Methods
 
+        public float GetTorqueForGearshiftPositionAtSpeed(GearshiftPosition gearshiftPosition, float speed)
+        {
+            // Calculate total drive ratio.
+            float totalDriveRatio = 0;
+
+            if (gearshiftPosition == GearshiftPosition.Reverse)
+            {
+                totalDriveRatio = specifications.reverseGearRatio * specifications.finalDriveRatio;
+            }
+            else if (gearshiftPosition != GearshiftPosition.Neutral)
+            {
+                int gear = (int)gearshiftPosition;
+                totalDriveRatio = specifications.forwardGearRatios[gear] * specifications.finalDriveRatio;
+            }
+            float wheelAngularSpeed = speed / wheelColliderFrontLeft.radius;
+            float engineAngularSpeed = wheelAngularSpeed * totalDriveRatio;
+            float engineRpm = engineAngularSpeed * PhysicsHelper.angularSpeedToRpm;
+
+            // Estimate load torque.
+            float engineAngularSpeedDifference = engineAngularSpeed * loadTorqueEstimationFactor;
+            float engineEqalizationTorque = engineAngularSpeedDifference * specifications.wheelsToEngineEqualizationFactor;
+            float loadTorque = engineEqalizationTorque / Mathf.Abs(totalDriveRatio);
+
+            // Calculate engine torque.
+            float airFuelIntake = GetAirFuelIntake(engineRpm, 1);
+            float combutionsTorque = GetCombustionTorque(engineRpm, airFuelIntake);
+            float engineBrakingTorque = GetEngineBrakingTorque(engineAngularSpeed, airFuelIntake);
+
+            return (loadTorque + combutionsTorque + engineBrakingTorque) * totalDriveRatio;
+        }
+
         private void Awake()
         {
+            drivenWheelsCount = specifications.drivetrainType == DrivetrainType.FourWheelDrive ? 4 : 2;
             rigidbody = GetComponent<Rigidbody>();
         }
 
@@ -102,24 +148,27 @@ namespace TurboEsprit
             HandleEngine();
             HandleBrakes();
             ApplyAerodynamicForces();
+
+            accelerator = acceleratorPedalPosition;
+            brake = brakePedalPosition;
+            clutch = clutchPedalPosition;
+            steering = steeringWheelPosition;
+            gear = (int)gearshiftPosition;
         }
 
         private void UpdateDriveAxlesAngularSpeed()
         {
             // Calculate new average drive wheel RPM.
             float newAverageDriveWheelRpm = 0;
-            float drivenWheelsCount = 0;
 
             if (specifications.drivetrainType != DrivetrainType.RearWheelDrive)
             {
                 newAverageDriveWheelRpm += wheelColliderFrontLeft.rpm + wheelColliderFrontRight.rpm;
-                drivenWheelsCount += 2;
             }
 
             if (specifications.drivetrainType != DrivetrainType.FrontWheelDrive)
             {
                 newAverageDriveWheelRpm += wheelColliderBackLeft.rpm + wheelColliderBackRight.rpm;
-                drivenWheelsCount += 2;
             }
 
             newAverageDriveWheelRpm /= drivenWheelsCount;
@@ -201,33 +250,22 @@ namespace TurboEsprit
                 // Calculate how much torque can actually be sent through the transmission.
                 float loadTorque = engineEqalizationTorque * engineToTransmissionFactor / Mathf.Abs(totalDriveRatio);
                 engineTorque += loadTorque;
+
+                this.loadTorque = loadTorque;
             }
 
             // Calculate air/fuel intake.
             float airFuelIntake = 0;
-            float maxCombustionTorque = GetMaxCombustionTorque();
 
             if (engineState != EngineState.Off)
             {
-                // Apply idle air control that boost up the intake at low RPM.
-                float minAirFuelIntake = Mathf.Lerp(1, 0, engineRpm / specifications.idleAirControlStopRpm);
-
-                // Apply rev limiter that reduces intake at high RPM.
-                float revLimiterRangeRpm = specifications.revLimiterStopRpm - specifications.revLimiterStartRpm;
-                float maxAirFuelIntake = Mathf.Lerp(1, 0, (engineRpm - specifications.revLimiterStartRpm) / revLimiterRangeRpm);
-
-                airFuelIntake = Mathf.Lerp(minAirFuelIntake, maxAirFuelIntake, acceleratorPedalPosition);
-
                 // Add torque from combustion.
-                float combustionTorque = airFuelIntake * maxCombustionTorque;
-                engineTorque += combustionTorque;
+                airFuelIntake = GetAirFuelIntake(engineRpm, acceleratorPedalPosition);
+                engineTorque += GetCombustionTorque(engineRpm, airFuelIntake);
             }
 
             // Add torque from engine braking.
-            float maxEngineBrakingTorque = -engineAngularSpeed * specifications.engineBrakingCoefficient;
-            float engineBrakingTorque = maxEngineBrakingTorque * (1 - airFuelIntake);
-
-            engineTorque += engineBrakingTorque;
+            engineTorque += GetEngineBrakingTorque(engineAngularSpeed, airFuelIntake);
 
             // Apply torque to engine.
             float engineAngularAcceleration = engineTorque / specifications.engineAngularMass;
@@ -247,7 +285,7 @@ namespace TurboEsprit
             }
 
             // Calculate needed torque applied to wheels to match engine angular speed.
-            float wheelTorque;
+            float wheelsTorque;
 
             if (totalDriveRatio != 0)
             {
@@ -256,12 +294,17 @@ namespace TurboEsprit
                 float driveAxlesEqalizationTorque = driveAxlesAngularSpeedDifference * specifications.engineToWheelsEqualizationFactor;
 
                 // Calculate how much torque can actually be sent through the transmission.
-                wheelTorque = driveAxlesEqalizationTorque * engineToTransmissionFactor * Mathf.Abs(totalDriveRatio);
+                wheelsTorque = driveAxlesEqalizationTorque * engineToTransmissionFactor * Mathf.Abs(totalDriveRatio);
             }
             else
             {
-                wheelTorque = 0;
+                wheelsTorque = 0;
             }
+
+            float wheelTorque = wheelsTorque / drivenWheelsCount;
+
+            this.engineTorque = engineTorque;
+            this.wheelTorque = wheelTorque;
 
             // Apply torque to front wheels.
             if (specifications.drivetrainType != DrivetrainType.RearWheelDrive)
@@ -306,7 +349,25 @@ namespace TurboEsprit
             return 1 - Mathf.Pow(1 - value, Time.fixedDeltaTime);
         }
 
-        private float GetMaxCombustionTorque()
+        private float GetAirFuelIntake(float engineRpm, float acceleratorPedalPosition)
+        {
+            // Apply idle air control that boost up the intake at low RPM.
+            float minAirFuelIntake = Mathf.Lerp(1, 0, engineRpm / specifications.idleAirControlStopRpm);
+
+            // Apply rev limiter that reduces intake at high RPM.
+            float revLimiterRangeRpm = specifications.revLimiterStopRpm - specifications.revLimiterStartRpm;
+            float maxAirFuelIntake = Mathf.Lerp(1, 0, (engineRpm - specifications.revLimiterStartRpm) / revLimiterRangeRpm);
+
+            return Mathf.Lerp(minAirFuelIntake, maxAirFuelIntake, acceleratorPedalPosition);
+        }
+
+        private float GetCombustionTorque(float engineRpm, float airFuelIntake)
+        {
+            float maxCombustionTorque = GetMaxCombustionTorque(engineRpm);
+            return maxCombustionTorque * airFuelIntake;
+        }
+
+        private float GetMaxCombustionTorque(float engineRpm)
         {
             Vector2[] torqueCurve = specifications.torqueCurve;
 
@@ -322,6 +383,12 @@ namespace TurboEsprit
             }
 
             return 0;
+        }
+
+        private float GetEngineBrakingTorque(float engineAngularSpeed, float airFuelIntake)
+        {
+            float maxEngineBrakingTorque = -engineAngularSpeed * specifications.engineBrakingCoefficient;
+            return maxEngineBrakingTorque * (1 - airFuelIntake);
         }
     }
 }
