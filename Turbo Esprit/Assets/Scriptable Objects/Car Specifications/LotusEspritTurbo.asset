@@ -28,10 +28,9 @@ MonoBehaviour:
   - 0.75
   finalDriveRatio: 3.88
   drivetrainType: 1
-  redlineValueRpm: 7000
   engineAngularMass: 1
   wheelsToEngineEqualizationFactor: 10
-  engineToWheelsEqualizationFactor: 3.5
+  engineToWheelsEqualizationFactor: 5
   engineBrakingCoefficient: 0.4
   maxSteeringAngleDegrees: 30
   maxSteeringAngleDeltaRateDegrees: 30
@@ -39,7 +38,7 @@ MonoBehaviour:
   starterTorque: 50
   starterStopRpm: 1200
   idleAirControlStopRpm: 1700
-  revLimiterStartRpm: 7000
+  revLimiterStartRpm: 6500
   revLimiterStopRpm: 7500
   downforceCoefficient: 3
   dragForceCoefficient: 0.3

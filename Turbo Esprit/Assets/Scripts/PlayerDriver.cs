@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
@@ -7,20 +7,27 @@ namespace TurboEsprit
 {
     public class PlayerDriver : Driver
     {
-        public float targetSpeedMph;
+        // How much can the target speed be changed per second.
+        [SerializeField] private float speedChangeRateMph;
 
-        [SerializeField] private float speedChangeRate;
-        [SerializeField] private float roundingSpeedStep;
+        // The minimum amount the target speed has to be ahead of current speed. 
+        [SerializeField] private float minSpeedChangeDifferenceMph;
 
-        private bool waitingForInputSignChange = false;
-        private int speedChangeInputSignBeforeWaiting = 0;
+        // At what steps should the driver try to hold speed at when controls are disengaged.
+        [SerializeField] private float roundingSpeedStepMph;
 
+        private int speedSign = 0;
         private bool keepTargetSpeed = true;
+
+        // Properties in SI units.
+
+        private float speedChangeRate => speedChangeRateMph * PhysicsHelper.milesPerHourToMetersPerSecond;
+        private float minSpeedChangeDifference => minSpeedChangeDifferenceMph * PhysicsHelper.milesPerHourToMetersPerSecond;
+        private float roundingSpeedStep => roundingSpeedStepMph * PhysicsHelper.milesPerHourToMetersPerSecond;
 
         protected override void Update()
         {
             UpdateTargetSpeed();
-
             base.Update();
         }
 
@@ -29,13 +36,10 @@ namespace TurboEsprit
             // Read player input.
             float speedChangeInput = Input.GetAxis("Speed Change");
 
-            // When the car has stopped, we need to get a different input before we react to changes so that braking<->accelerating transition is deliberate.
-            if (waitingForInputSignChange)
+            // When the car has stopped and we're not pressing anything, reset speed sign.
+            if (car.speed == 0 && speedChangeInput == 0)
             {
-                int speedChangeInputSign = Math.Sign(speedChangeInput);
-                if (speedChangeInputSign == speedChangeInputSignBeforeWaiting) return;
-
-                waitingForInputSignChange = false;
+                speedSign = 0;
             }
 
             // Nothing to do if we're keeping the current speed and no change is requested.
@@ -43,28 +47,31 @@ namespace TurboEsprit
 
             if (speedChangeInput != 0)
             {
-                // We want to change speed so calculate new target speed.
-                float speedChange = speedChangeInput * speedChangeRate * Time.deltaTime;
-                float newTargetSpeed = targetSpeed + speedChange;
-
-                // Make car stop before changing direction.
-                int newTargetSpeedSign = Math.Sign(newTargetSpeed);
-                int carSpeedSign = Math.Sign(car.speed);
-
-                if (carSpeedSign != 0 && newTargetSpeedSign != carSpeedSign)
+                // If sign is not set when we're stopped, determine the direction we want to go in.
+                if (speedSign == 0 && car.speed == 0)
                 {
-                    newTargetSpeed = 0;
+                    speedSign = Math.Sign(speedChangeInput);
+                }
+
+                // We want to change speed so calculate new target speed.
+                float absoluteSpeedChangeInput = speedChangeInput * speedSign;
+                float absoluteSpeedChange = absoluteSpeedChangeInput * speedChangeRate * Time.deltaTime;
+                float newAbsoluteTargetSpeed = Mathf.Abs(targetSpeed) + absoluteSpeedChange;
+
+                // Ensure minimum speed difference for faster reaction.
+                float absoluteCarSpeed = Mathf.Abs(car.speed);
+
+                if (absoluteSpeedChangeInput < 0)
+                {
+                    newAbsoluteTargetSpeed = Mathf.Clamp(newAbsoluteTargetSpeed, 0, Mathf.Max(0, absoluteCarSpeed - minSpeedChangeDifference));
+                }
+                else if (absoluteSpeedChangeInput > 0 && newAbsoluteTargetSpeed < absoluteCarSpeed + minSpeedChangeDifference)
+                {
+                    newAbsoluteTargetSpeed = Mathf.Max(newAbsoluteTargetSpeed, absoluteCarSpeed + minSpeedChangeDifference);
                 }
 
                 // Set new target speed.
-                targetSpeed = newTargetSpeed;
-
-                // Start the waiting period for input to change its sign.
-                if (targetSpeed == 0 && car.speed == 0)
-                {
-                    waitingForInputSignChange = true;
-                    speedChangeInputSignBeforeWaiting = Math.Sign(speedChangeInput);
-                }
+                targetSpeed = newAbsoluteTargetSpeed * speedSign;
 
                 // Don't keep the speed until we stop changing it.
                 keepTargetSpeed = false;
@@ -75,8 +82,6 @@ namespace TurboEsprit
                 targetSpeed = Mathf.Round(car.speed / roundingSpeedStep) * roundingSpeedStep;
                 keepTargetSpeed = true;
             }
-
-            targetSpeedMph = targetSpeed * PhysicsHelper.metersPerSecondToMilesPerHour;
         }
     }
 }

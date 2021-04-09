@@ -34,13 +34,7 @@ namespace TurboEsprit
             float clampedValue = Mathf.Clamp(GetValue(), 0, maxUnits);
             float newDialDegrees = zeroPositionDegrees + clampedValue * unitDegrees;
 
-            float change = newDialDegrees - dialDegrees;
-            float absoluteChange = Mathf.Abs(change);
-
-            float maxChange = maxDialAngularSpeedDegrees * Time.deltaTime;
-            float relativeChange = absoluteChange > maxChange ? maxChange / absoluteChange : 1;
-
-            dialDegrees += change * relativeChange;
+            dialDegrees = Mathf.MoveTowardsAngle(dialDegrees, newDialDegrees, maxDialAngularSpeedDegrees * Time.deltaTime);
 
             dialTransform.localRotation = Quaternion.Euler(0, 0, dialDegrees);
         }

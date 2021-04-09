@@ -828,7 +828,7 @@ MonoBehaviour:
   zeroPositionDegrees: 225
   unitDegrees: -1.5
   maxUnits: 180
-  maxDialAngularSpeedDegrees: 360
+  maxDialAngularSpeedDegrees: 90
   dialTransform: {fileID: 1852551123}
 --- !u!1 &1106309709
 GameObject:
@@ -1331,19 +1331,11 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: b993c834a7ba6467395a1e854334de4c, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  normalPedalSpeed: 1
-  shiftingPedalSpeed: 5
-  movingOffPedalSpeed: 0.5
-  shiftingDuration: 0.2
-  maxIdlingDuration: 3
-  torqueFactorForDownshiftingWhenAccelerating: 0.5
-  preventShiftingMaxSpeedDifference: 2.24
-  acceleratorChangeRate: 0.01
-  state: 0
-  targetGearshiftPosition: 0
+  profile: {fileID: 11400000, guid: 9a3649a128f254eb9b8922ab18f09f92, type: 2}
   targetSpeedMph: 0
-  speedChangeRate: 5
-  roundingSpeedStep: 4.47
+  speedChangeRateMph: 5
+  minSpeedChangeDifferenceMph: 10
+  roundingSpeedStepMph: 10
 --- !u!82 &1735467173
 AudioSource:
   m_ObjectHideFlags: 0

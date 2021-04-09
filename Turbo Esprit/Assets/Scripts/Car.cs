@@ -6,21 +6,9 @@ namespace TurboEsprit
 {
     public class Car : MonoBehaviour
     {
-        [Range(0, 1)] public float accelerator = 0;
-        [Range(0, 1)] public float brake = 0;
-        [Range(0, 1)] public float clutch = 0;
-        [Range(0, 5)] public int gear = 1;
-        [Range(-1, 1)] public float steering = 0;
-        [Range(-1000, 0)] public float loadTorque = 0;
-        [Range(-1, 1000)] public float engineTorque = 0;
-        [Range(-1, 3000)] public float wheelTorque = 0;
-        [Range(-1, 1000)] public float engineWheelsAngularSpeed = 0;
-        [Range(-1, 1000)] public float engineActualAngularSpeed = 0;
-
         // Constants
 
-        private const float loadTorqueEstimationFactor = -0.3f;
-        private const float wheelRpmSmoothingFactor = 0.8f;
+        private const float averageDriveWheelsRpmSmoothingDuration = 1;
         private const float minWheelRpmThreshold = 1;
 
         // Fields
@@ -33,11 +21,14 @@ namespace TurboEsprit
         [SerializeField] private WheelCollider wheelColliderBackRight;
 
         private float engineAngularSpeed = 0;
-        private float averageDriveWheelsRpm = 0;
         private float driveAxlesAngularSpeed = 0;
+
+        private float[] averageDriveWheelsRpmHistory;
+        private int nextAverageDriveWheelsRpmHistoryIndex = 0;
+        private float averageDriveWheelsRpm = 0;
+
         private int drivenWheelsCount;
         private new Rigidbody rigidbody;
-
         private IgnitionSwitchPosition _ignitionSwitchPosition;
 
         // Enums
@@ -103,41 +94,13 @@ namespace TurboEsprit
 
         // Methods
 
-        public float GetTorqueForGearshiftPositionAtSpeed(GearshiftPosition gearshiftPosition, float speed)
-        {
-            // Calculate total drive ratio.
-            float totalDriveRatio = 0;
-
-            if (gearshiftPosition == GearshiftPosition.Reverse)
-            {
-                totalDriveRatio = specifications.reverseGearRatio * specifications.finalDriveRatio;
-            }
-            else if (gearshiftPosition != GearshiftPosition.Neutral)
-            {
-                int gear = (int)gearshiftPosition;
-                totalDriveRatio = specifications.forwardGearRatios[gear] * specifications.finalDriveRatio;
-            }
-            float wheelAngularSpeed = speed / wheelColliderFrontLeft.radius;
-            float engineAngularSpeed = wheelAngularSpeed * totalDriveRatio;
-            float engineRpm = engineAngularSpeed * PhysicsHelper.angularSpeedToRpm;
-
-            // Estimate load torque.
-            float engineAngularSpeedDifference = engineAngularSpeed * loadTorqueEstimationFactor;
-            float engineEqalizationTorque = engineAngularSpeedDifference * specifications.wheelsToEngineEqualizationFactor;
-            float loadTorque = engineEqalizationTorque / Mathf.Abs(totalDriveRatio);
-
-            // Calculate engine torque.
-            float airFuelIntake = GetAirFuelIntake(engineRpm, 1);
-            float combutionsTorque = GetCombustionTorque(engineRpm, airFuelIntake);
-            float engineBrakingTorque = GetEngineBrakingTorque(engineAngularSpeed, airFuelIntake);
-
-            return (loadTorque + combutionsTorque + engineBrakingTorque) * totalDriveRatio;
-        }
-
         private void Awake()
         {
             drivenWheelsCount = specifications.drivetrainType == DrivetrainType.FourWheelDrive ? 4 : 2;
             rigidbody = GetComponent<Rigidbody>();
+
+            int averageDriveWheelsRpmHistoryLength = Mathf.CeilToInt(averageDriveWheelsRpmSmoothingDuration / Time.fixedDeltaTime);
+            averageDriveWheelsRpmHistory = new float[averageDriveWheelsRpmHistoryLength];
         }
 
         private void FixedUpdate()
@@ -148,34 +111,35 @@ namespace TurboEsprit
             HandleEngine();
             HandleBrakes();
             ApplyAerodynamicForces();
-
-            accelerator = acceleratorPedalPosition;
-            brake = brakePedalPosition;
-            clutch = clutchPedalPosition;
-            steering = steeringWheelPosition;
-            gear = (int)gearshiftPosition;
         }
 
         private void UpdateDriveAxlesAngularSpeed()
         {
-            // Calculate new average drive wheel RPM.
-            float newAverageDriveWheelRpm = 0;
+            // Calculate the new average RPM of drive wheels.
+            float newAverageDriveWheelsRpm = 0;
 
             if (specifications.drivetrainType != DrivetrainType.RearWheelDrive)
             {
-                newAverageDriveWheelRpm += wheelColliderFrontLeft.rpm + wheelColliderFrontRight.rpm;
+                newAverageDriveWheelsRpm += wheelColliderFrontLeft.rpm + wheelColliderFrontRight.rpm;
             }
 
             if (specifications.drivetrainType != DrivetrainType.FrontWheelDrive)
             {
-                newAverageDriveWheelRpm += wheelColliderBackLeft.rpm + wheelColliderBackRight.rpm;
+                newAverageDriveWheelsRpm += wheelColliderBackLeft.rpm + wheelColliderBackRight.rpm;
             }
 
-            newAverageDriveWheelRpm /= drivenWheelsCount;
+            newAverageDriveWheelsRpm /= drivenWheelsCount;
 
-            // Smooth the RPM value to slowly change over time.
-            float wheelRpmSmoothingParameter = CalculateSmoothingParameter(wheelRpmSmoothingFactor);
-            averageDriveWheelsRpm = Mathf.Lerp(averageDriveWheelsRpm, newAverageDriveWheelRpm, wheelRpmSmoothingParameter);
+            // Calculate the average drive wheels RPM as a moving average of previous values. 
+            averageDriveWheelsRpmHistory[nextAverageDriveWheelsRpmHistoryIndex] = newAverageDriveWheelsRpm;
+            nextAverageDriveWheelsRpmHistoryIndex = (nextAverageDriveWheelsRpmHistoryIndex + 1) % averageDriveWheelsRpmHistory.Length;
+
+            averageDriveWheelsRpm = 0;
+            foreach (float averageDriveWheelsRpmEntry in averageDriveWheelsRpmHistory)
+            {
+                averageDriveWheelsRpm += averageDriveWheelsRpmEntry;
+            }
+            averageDriveWheelsRpm /= averageDriveWheelsRpmHistory.Length;
 
             // Apply minimum treshold.
             if (Mathf.Abs(averageDriveWheelsRpm) < minWheelRpmThreshold) averageDriveWheelsRpm = 0;
@@ -214,21 +178,12 @@ namespace TurboEsprit
         private void HandleEngine()
         {
             // Calculate total drive ratio and engine to transmission factor.
-            float totalDriveRatio = 0;
+            float totalDriveRatio = GetTotalDriveRatio(gearshiftPosition);
             float engineToTransmissionFactor = 1 - clutchPedalPosition;
 
             if (gearshiftPosition == GearshiftPosition.Neutral)
             {
                 engineToTransmissionFactor = 0;
-            }
-            else if (gearshiftPosition == GearshiftPosition.Reverse)
-            {
-                totalDriveRatio = specifications.reverseGearRatio * specifications.finalDriveRatio;
-            }
-            else
-            {
-                int gear = (int)gearshiftPosition;
-                totalDriveRatio = specifications.forwardGearRatios[gear] * specifications.finalDriveRatio;
             }
 
             // Calculate torque acting on the engine.
@@ -250,8 +205,6 @@ namespace TurboEsprit
                 // Calculate how much torque can actually be sent through the transmission.
                 float loadTorque = engineEqalizationTorque * engineToTransmissionFactor / Mathf.Abs(totalDriveRatio);
                 engineTorque += loadTorque;
-
-                this.loadTorque = loadTorque;
             }
 
             // Calculate air/fuel intake.
@@ -291,6 +244,7 @@ namespace TurboEsprit
             {
                 float driveAxlesTargetAngularSpeed = engineAngularSpeed / totalDriveRatio;
                 float driveAxlesAngularSpeedDifference = driveAxlesTargetAngularSpeed - driveAxlesAngularSpeed;
+
                 float driveAxlesEqalizationTorque = driveAxlesAngularSpeedDifference * specifications.engineToWheelsEqualizationFactor;
 
                 // Calculate how much torque can actually be sent through the transmission.
@@ -302,9 +256,6 @@ namespace TurboEsprit
             }
 
             float wheelTorque = wheelsTorque / drivenWheelsCount;
-
-            this.engineTorque = engineTorque;
-            this.wheelTorque = wheelTorque;
 
             // Apply torque to front wheels.
             if (specifications.drivetrainType != DrivetrainType.RearWheelDrive)
@@ -344,9 +295,20 @@ namespace TurboEsprit
             rigidbody.AddForce(dragForce);
         }
 
-        private float CalculateSmoothingParameter(float value)
+        private float GetTotalDriveRatio(GearshiftPosition gearshiftPosition)
         {
-            return 1 - Mathf.Pow(1 - value, Time.fixedDeltaTime);
+            switch (gearshiftPosition)
+            {
+                case GearshiftPosition.Reverse:
+                    return specifications.reverseGearRatio * specifications.finalDriveRatio;
+
+                case GearshiftPosition.Neutral:
+                    return 0;
+
+                default:
+                    int gear = (int)gearshiftPosition;
+                    return specifications.forwardGearRatios[gear] * specifications.finalDriveRatio;
+            }
         }
 
         private float GetAirFuelIntake(float engineRpm, float acceleratorPedalPosition)

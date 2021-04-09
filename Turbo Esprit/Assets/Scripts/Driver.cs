@@ -6,22 +6,16 @@ namespace TurboEsprit
 {
     public class Driver : MonoBehaviour
     {
-        [SerializeField] private float normalPedalSpeed;
-        [SerializeField] private float shiftingPedalSpeed;
-        [SerializeField] private float movingOffPedalSpeed;
-        [SerializeField] private float shiftingDuration;
-        [SerializeField] private float maxIdlingDuration;
-        [SerializeField] private float preventShiftingMaxSpeedDifference;
-        [SerializeField] private float acceleratorChangeRate;
+        [SerializeField] private DriverProfile profile;
 
         protected Car car;
 
-        public State state = State.Parked;
+        private State state = State.Parked;
         private float idlingTime = 0;
         private float shiftingTime = 0;
+        private float previousSpeed = 0;
 
-        public Car.GearshiftPosition targetGearshiftPosition;
-        private Car.GearshiftPosition[] bestGearshiftPositionTable = new Car.GearshiftPosition[67];
+        private Car.GearshiftPosition targetGearshiftPosition;
 
         public enum State
         {
@@ -39,22 +33,6 @@ namespace TurboEsprit
         private void Awake()
         {
             car = GetComponent<Car>();
-
-            // Precalculate the best gearshift positions.
-            Car.GearshiftPosition bestGear = Car.GearshiftPosition.FirstGear;
-
-            for (int speed = 0; speed < bestGearshiftPositionTable.Length; speed++)
-            {
-                if (bestGear < Car.GearshiftPosition.FifthGear)
-                {
-                    float torqueInCurrentBestGear = car.GetTorqueForGearshiftPositionAtSpeed(bestGear, speed);
-                    float torqueInNextGear = car.GetTorqueForGearshiftPositionAtSpeed(bestGear + 1, speed);
-
-                    if (torqueInNextGear > torqueInCurrentBestGear) bestGear++;
-                }
-
-                bestGearshiftPositionTable[speed] = bestGear;
-            }
         }
 
         protected virtual void Update()
@@ -80,21 +58,26 @@ namespace TurboEsprit
                 // Only reverse gear can make us go backwards.
                 targetGearshiftPosition = Car.GearshiftPosition.Reverse;
             }
-            else if (Mathf.Abs(targetSpeed - car.speed) < preventShiftingMaxSpeedDifference)
+            else if (state != State.Shifting && state != State.MovingOff)
             {
-                // When you're close enough to target speed, don't change gear.
-                targetGearshiftPosition = car.gearshiftPosition;
-            }
-            else
-            {
-                // We should be in the gear that produces the most torque.
-                int tableIndex = Mathf.Clamp(Mathf.RoundToInt(car.speed), 0, bestGearshiftPositionTable.Length - 1);
-                int bestGear = (int)bestGearshiftPositionTable[tableIndex];
+                // We have to be at least in first gear.
+                if (car.gearshiftPosition == Car.GearshiftPosition.Neutral)
+                {
+                    targetGearshiftPosition = Car.GearshiftPosition.FirstGear;
+                }
 
-                // Don't downshift just one gear if trying to accelerate.
-                if (targetSpeed > car.speed && bestGear == (int)targetGearshiftPosition - 1) return;
+                // Shift up when accelerating above specified limit.
+                float activeUpshiftEngineRpm = Mathf.Abs(targetSpeed - car.speed) < profile.closeSpeedDifference ? profile.upshiftEngineRpmWhenCloseToTarget : profile.upshiftEngineRpm;
+                if (targetSpeed > car.speed && car.engineRpm > activeUpshiftEngineRpm && car.gearshiftPosition < Car.GearshiftPosition.FifthGear)
+                {
+                    targetGearshiftPosition = car.gearshiftPosition + 1;
+                }
 
-                targetGearshiftPosition = (Car.GearshiftPosition)bestGear;
+                // Shift down when below specified limit.
+                if (car.engineRpm < profile.downshiftEngineRpm && car.gearshiftPosition > Car.GearshiftPosition.FirstGear)
+                {
+                    targetGearshiftPosition = car.gearshiftPosition - 1;
+                }
             }
         }
 
@@ -120,7 +103,7 @@ namespace TurboEsprit
                     if (car.speed == 0)
                     {
                         idlingTime += Time.deltaTime;
-                        if (idlingTime > maxIdlingDuration) state = State.Parked;
+                        if (idlingTime > profile.maxIdlingDuration) state = State.Parked;
                     }
 
                     // When leaving state, reset idling time for next time.
@@ -132,11 +115,25 @@ namespace TurboEsprit
                 case State.Shifting:
                     // When moving off or shifting, we wait until clutch is released in the right gear.
                     if (car.clutchPedalPosition == 0 && car.gearshiftPosition == targetGearshiftPosition) state = State.Driving;
+
+                    // If target speed becomes zero, we should stop.
+                    if (targetSpeed == 0) state = State.Stopping;
                     break;
 
                 case State.Driving:
                     // When driving, if we're not in the right gear, start shifting.
                     if (car.gearshiftPosition != targetGearshiftPosition) state = State.Shifting;
+
+                    // If target speed becomes zero, we should stop.
+                    if (targetSpeed == 0) state = State.Stopping;
+                    break;
+
+                case State.Stopping:
+                    // When stopping, if target speed changes, shift back into gear.
+                    if (targetSpeed != 0) state = State.Shifting;
+
+                    // When our speed stops, we go to idling.
+                    if (car.speed == 0) state = State.Idling;
                     break;
             }
         }
@@ -161,31 +158,56 @@ namespace TurboEsprit
 
         private void UpdateAcceleratorPedalPosition()
         {
+            float speed = car.speed;
+
             switch (state)
             {
+                case State.Idling:
+                case State.Parked:
+                    car.acceleratorPedalPosition = Mathf.MoveTowards(car.acceleratorPedalPosition, 0, profile.normalPedalSpeed * Time.deltaTime);
+                    break;
+
                 case State.MovingOff:
                 case State.Shifting:
                     if (car.gearshiftPosition == targetGearshiftPosition)
                     {
                         // When we're in the desired gearshift position, we should be pressing the accelerator.
-                        car.acceleratorPedalPosition = Mathf.MoveTowards(car.acceleratorPedalPosition, 1, shiftingPedalSpeed * Time.deltaTime);
+                        car.acceleratorPedalPosition = Mathf.MoveTowards(car.acceleratorPedalPosition, 1, profile.shiftingPedalSpeed * Time.deltaTime);
                     }
                     else
                     {
                         // When we're not in the desired gearshift position, we should be releasing the accelerator.
-                        car.acceleratorPedalPosition = Mathf.MoveTowards(car.acceleratorPedalPosition, 0, shiftingPedalSpeed * Time.deltaTime);
+                        car.acceleratorPedalPosition = Mathf.MoveTowards(car.acceleratorPedalPosition, 0, profile.shiftingPedalSpeed * Time.deltaTime);
                     }
                     break;
 
                 case State.Driving:
-                    float speedDifference = targetSpeed - car.speed;
-                    float positionChange = speedDifference * acceleratorChangeRate;
+                    // Calculate how much to accelerate, assuming we want to approach zero acceleration when we reach target speed.
+                    // We can integrate acceleration over time (as it linearly approeches zero) to get the speed change.
+                    //      a * Δt
+                    // Δv = ------
+                    //        2
+                    // Now we just express a from the equation to get our target.
+                    float absoluteSpeed = Mathf.Abs(speed);
+                    float absoluteSpeedDifference = Mathf.Abs(targetSpeed) - absoluteSpeed;
+                    float targetAcceleration = absoluteSpeedDifference / profile.speedEqualizationDuration * 2;
+
+                    // Based on current acceleration, slowly move the acceleration padel to match the desired one.
+                    float acceleration = (absoluteSpeed - Mathf.Abs(previousSpeed)) / Time.deltaTime;
+                    float accelerationDifference = targetAcceleration - acceleration;
+                    float positionChange = accelerationDifference * profile.acceleratorChangeRate;
                     float targetPosition = Mathf.Clamp(car.acceleratorPedalPosition + positionChange, 0, 1);
 
-                    car.acceleratorPedalPosition = Mathf.MoveTowards(car.acceleratorPedalPosition, targetPosition, normalPedalSpeed * Time.deltaTime);
+                    car.acceleratorPedalPosition = Mathf.MoveTowards(car.acceleratorPedalPosition, targetPosition, profile.normalPedalSpeed * Time.deltaTime);
 
                     break;
+
+                case State.Stopping:
+                    car.acceleratorPedalPosition = Mathf.MoveTowards(car.acceleratorPedalPosition, 0, profile.normalPedalSpeed * Time.deltaTime);
+                    break;
             }
+
+            previousSpeed = speed;
         }
 
         private void UpdateClutchPedalPosition()
@@ -197,20 +219,33 @@ namespace TurboEsprit
                     if (car.gearshiftPosition == targetGearshiftPosition)
                     {
                         // When we're in the desired gearshift position, we should be releasing the clutch.
-                        float pedalSpeed = state == State.MovingOff ? movingOffPedalSpeed : shiftingPedalSpeed;
+                        float pedalSpeed = state == State.MovingOff ? profile.movingOffPedalSpeed : profile.shiftingPedalSpeed;
                         car.clutchPedalPosition = Mathf.MoveTowards(car.clutchPedalPosition, 0, pedalSpeed * Time.deltaTime);
                     }
                     else
                     {
                         // When we're not in the desired gearshift position, we should be pressing the clutch.
-                        car.clutchPedalPosition = Mathf.MoveTowards(car.clutchPedalPosition, 1, shiftingPedalSpeed * Time.deltaTime);
+                        car.clutchPedalPosition = Mathf.MoveTowards(car.clutchPedalPosition, 1, profile.shiftingPedalSpeed * Time.deltaTime);
                     }
+                    break;
+
+                case State.Stopping:
+                    car.clutchPedalPosition = Mathf.MoveTowards(car.clutchPedalPosition, 1, profile.shiftingPedalSpeed * Time.deltaTime);
                     break;
             }
         }
 
         private void UpdateBrakePedalPosition()
         {
+            float targetPedalPosition = 1;
+
+            if (targetSpeed != 0)
+            {
+                float absoluteSpeedDifference = Mathf.Abs(car.speed) - Mathf.Abs(targetSpeed);
+                targetPedalPosition = Mathf.InverseLerp(profile.minBrakingSpeedDifference, profile.maxBrakingSpeedDifference, absoluteSpeedDifference);
+            }
+
+            car.brakePedalPosition = Mathf.MoveTowards(car.brakePedalPosition, targetPedalPosition, profile.normalPedalSpeed * Time.deltaTime);
         }
 
         private void UpdateGearshiftPosition()
@@ -228,9 +263,10 @@ namespace TurboEsprit
                             shiftingTime += Time.deltaTime;
 
                             // When shifting duration is reached, we can shift to the correct gear.
-                            if (shiftingTime > shiftingDuration)
+                            if (shiftingTime > profile.shiftingDuration)
                             {
                                 car.gearshiftPosition = targetGearshiftPosition;
+                                shiftingTime = profile.shiftingDuration;
                             }
                         }
                         // If we're in a gear that is not the target one, we need to remove from shifting time.
@@ -242,7 +278,24 @@ namespace TurboEsprit
                             if (shiftingTime < 0)
                             {
                                 car.gearshiftPosition = Car.GearshiftPosition.Neutral;
+                                shiftingTime = 0;
                             }
+                        }
+                    }
+                    break;
+
+                case State.Parked:
+                case State.Idling:
+                case State.Stopping:
+                    // When we're supposed to stand still, we shift out of gear to neutral.
+                    if (car.gearshiftPosition != targetGearshiftPosition)
+                    {
+                        shiftingTime -= Time.deltaTime;
+
+                        // When shifting duration is reversed, we can shift to neutral.
+                        if (shiftingTime < 0)
+                        {
+                            car.gearshiftPosition = Car.GearshiftPosition.Neutral;
                         }
                     }
                     break;
