@@ -1,3 +1,4 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
@@ -9,15 +10,17 @@ namespace TurboEsprit
         [SerializeField] private DriverProfile profile;
 
         protected Car car;
+        protected CarTracker carTracker;
 
-        private State state = State.Parked;
+        private DrivingState drivingState = DrivingState.Parked;
+        private TurningState turningState = TurningState.DrivingStraight;
         private float idlingTime = 0;
         private float shiftingTime = 0;
         private float previousSpeed = 0;
 
         private Car.GearshiftPosition targetGearshiftPosition;
 
-        public enum State
+        public enum DrivingState
         {
             Parked,
             Starting,
@@ -28,22 +31,46 @@ namespace TurboEsprit
             Stopping
         }
 
+        public enum TurningState
+        {
+            DrivingStraight,
+            Turning
+        }
+
         protected float targetSpeed { get; set; }
+        protected int targetLane { get; set; }
+        protected Vector3 targetDirection { get; set; }
 
         private void Awake()
         {
             car = GetComponent<Car>();
+            carTracker = GetComponent<CarTracker>();
+            targetDirection = transform.forward;
         }
 
         protected virtual void Update()
         {
             UpdateDesiredGearshiftPosition();
-            UpdateState();
+            UpdateDrivingState();
+            UpdateTurningState();
             UpdateIgnitionSwitchPosition();
             UpdateAcceleratorPedalPosition();
             UpdateClutchPedalPosition();
             UpdateBrakePedalPosition();
             UpdateGearshiftPosition();
+            UpdateSteeringWheelPosition();
+        }
+
+        protected float GetCarAngleDegrees(bool signed = true)
+        {
+            if (signed)
+            {
+                return Vector3.SignedAngle(Vector3.forward, carTracker.relativeDirection, Vector3.up);
+            }
+            else
+            {
+                return Vector3.Angle(Vector3.forward, carTracker.relativeDirection);
+            }
         }
 
         private void UpdateDesiredGearshiftPosition()
@@ -58,7 +85,7 @@ namespace TurboEsprit
                 // Only reverse gear can make us go backwards.
                 targetGearshiftPosition = Car.GearshiftPosition.Reverse;
             }
-            else if (state != State.Shifting && state != State.MovingOff)
+            else if (drivingState != DrivingState.Shifting && drivingState != DrivingState.MovingOff)
             {
                 // We have to be at least in first gear.
                 if (car.gearshiftPosition == Car.GearshiftPosition.Neutral)
@@ -81,72 +108,91 @@ namespace TurboEsprit
             }
         }
 
-        private void UpdateState()
+        private void UpdateDrivingState()
         {
-            switch (state)
+            switch (drivingState)
             {
-                case State.Parked:
+                case DrivingState.Parked:
                     // We move out of parked into starting when any speed is required.
-                    if (targetSpeed != 0) state = State.Starting;
+                    if (targetSpeed != 0) drivingState = DrivingState.Starting;
                     break;
 
-                case State.Starting:
+                case DrivingState.Starting:
                     // When starting, we wait for the engine to turn on before going idle.
-                    if (car.engineState == Car.EngineState.On) state = State.Idling;
+                    if (car.engineState == Car.EngineState.On) drivingState = DrivingState.Idling;
                     break;
 
-                case State.Idling:
+                case DrivingState.Idling:
                     // When idling, we wait for target speed to get a value before moving off.
-                    if (targetSpeed != 0) state = State.MovingOff;
+                    if (targetSpeed != 0) drivingState = DrivingState.MovingOff;
 
                     // When the car is not moving, we wait before shutting the engine off.
                     if (car.speed == 0)
                     {
                         idlingTime += Time.deltaTime;
-                        if (idlingTime > profile.maxIdlingDuration) state = State.Parked;
+                        if (idlingTime > profile.maxIdlingDuration) drivingState = DrivingState.Parked;
                     }
 
                     // When leaving state, reset idling time for next time.
-                    if (state != State.Idling) idlingTime = 0;
+                    if (drivingState != DrivingState.Idling) idlingTime = 0;
 
                     break;
 
-                case State.MovingOff:
-                case State.Shifting:
+                case DrivingState.MovingOff:
+                case DrivingState.Shifting:
                     // When moving off or shifting, we wait until clutch is released in the right gear.
-                    if (car.clutchPedalPosition == 0 && car.gearshiftPosition == targetGearshiftPosition) state = State.Driving;
+                    if (car.clutchPedalPosition == 0 && car.gearshiftPosition == targetGearshiftPosition) drivingState = DrivingState.Driving;
 
                     // If target speed becomes zero, we should stop.
-                    if (targetSpeed == 0) state = State.Stopping;
+                    if (targetSpeed == 0) drivingState = DrivingState.Stopping;
                     break;
 
-                case State.Driving:
+                case DrivingState.Driving:
                     // When driving, if we're not in the right gear, start shifting.
-                    if (car.gearshiftPosition != targetGearshiftPosition) state = State.Shifting;
+                    if (car.gearshiftPosition != targetGearshiftPosition) drivingState = DrivingState.Shifting;
 
                     // If target speed becomes zero, we should stop.
-                    if (targetSpeed == 0) state = State.Stopping;
+                    if (targetSpeed == 0) drivingState = DrivingState.Stopping;
                     break;
 
-                case State.Stopping:
+                case DrivingState.Stopping:
                     // When stopping, if target speed changes, shift back into gear.
-                    if (targetSpeed != 0) state = State.Shifting;
+                    if (targetSpeed != 0) drivingState = DrivingState.Shifting;
 
                     // When our speed stops, we go to idling.
-                    if (car.speed == 0) state = State.Idling;
+                    if (car.speed == 0) drivingState = DrivingState.Idling;
+                    break;
+            }
+        }
+
+        private void UpdateTurningState()
+        {
+            switch (turningState)
+            {
+                case TurningState.DrivingStraight:
+                    // When direction isn't forward, we go into turning mode.
+                    if (targetDirection != Vector3.forward) turningState = TurningState.Turning;
+                    break;
+
+
+                case TurningState.Turning:
+                    // When direction is forward and we're back in allowed angle range, we go back to driving straight.
+                    float carAngleDegrees = GetCarAngleDegrees(false);
+                    float allowedStraightAngleDegrees = GetAllowedStraightAngleDegrees();
+                    //if (targetDirection == Vector3.forward && carAngleDegrees < allowedStraightAngleDegrees) turningState = TurningState.DrivingStraight;
                     break;
             }
         }
 
         private void UpdateIgnitionSwitchPosition()
         {
-            switch (state)
+            switch (drivingState)
             {
-                case State.Starting:
+                case DrivingState.Starting:
                     car.ignitionSwitchPosition = Car.IgnitionSwitchPosition.Start;
                     break;
 
-                case State.Parked:
+                case DrivingState.Parked:
                     car.ignitionSwitchPosition = Car.IgnitionSwitchPosition.Lock;
                     break;
 
@@ -160,15 +206,15 @@ namespace TurboEsprit
         {
             float speed = car.speed;
 
-            switch (state)
+            switch (drivingState)
             {
-                case State.Idling:
-                case State.Parked:
+                case DrivingState.Idling:
+                case DrivingState.Parked:
                     car.acceleratorPedalPosition = Mathf.MoveTowards(car.acceleratorPedalPosition, 0, profile.normalPedalSpeed * Time.deltaTime);
                     break;
 
-                case State.MovingOff:
-                case State.Shifting:
+                case DrivingState.MovingOff:
+                case DrivingState.Shifting:
                     if (car.gearshiftPosition == targetGearshiftPosition)
                     {
                         // When we're in the desired gearshift position, we should be pressing the accelerator.
@@ -181,7 +227,7 @@ namespace TurboEsprit
                     }
                     break;
 
-                case State.Driving:
+                case DrivingState.Driving:
                     // Calculate how much to accelerate, assuming we want to approach zero acceleration when we reach target speed.
                     // We can integrate acceleration over time (as it linearly approeches zero) to get the speed change.
                     //      a * Δt
@@ -195,14 +241,14 @@ namespace TurboEsprit
                     // Based on current acceleration, slowly move the acceleration padel to match the desired one.
                     float acceleration = (absoluteSpeed - Mathf.Abs(previousSpeed)) / Time.deltaTime;
                     float accelerationDifference = targetAcceleration - acceleration;
-                    float positionChange = accelerationDifference * profile.acceleratorChangeRate;
+                    float positionChange = accelerationDifference * profile.acceleratorChangeFactor;
                     float targetPosition = Mathf.Clamp(car.acceleratorPedalPosition + positionChange, 0, 1);
 
                     car.acceleratorPedalPosition = Mathf.MoveTowards(car.acceleratorPedalPosition, targetPosition, profile.normalPedalSpeed * Time.deltaTime);
 
                     break;
 
-                case State.Stopping:
+                case DrivingState.Stopping:
                     car.acceleratorPedalPosition = Mathf.MoveTowards(car.acceleratorPedalPosition, 0, profile.normalPedalSpeed * Time.deltaTime);
                     break;
             }
@@ -212,14 +258,14 @@ namespace TurboEsprit
 
         private void UpdateClutchPedalPosition()
         {
-            switch (state)
+            switch (drivingState)
             {
-                case State.MovingOff:
-                case State.Shifting:
+                case DrivingState.MovingOff:
+                case DrivingState.Shifting:
                     if (car.gearshiftPosition == targetGearshiftPosition)
                     {
                         // When we're in the desired gearshift position, we should be releasing the clutch.
-                        float pedalSpeed = state == State.MovingOff ? profile.movingOffPedalSpeed : profile.shiftingPedalSpeed;
+                        float pedalSpeed = drivingState == DrivingState.MovingOff ? profile.movingOffPedalSpeed : profile.shiftingPedalSpeed;
                         car.clutchPedalPosition = Mathf.MoveTowards(car.clutchPedalPosition, 0, pedalSpeed * Time.deltaTime);
                     }
                     else
@@ -229,7 +275,7 @@ namespace TurboEsprit
                     }
                     break;
 
-                case State.Stopping:
+                case DrivingState.Stopping:
                     car.clutchPedalPosition = Mathf.MoveTowards(car.clutchPedalPosition, 1, profile.shiftingPedalSpeed * Time.deltaTime);
                     break;
             }
@@ -245,15 +291,17 @@ namespace TurboEsprit
                 targetPedalPosition = Mathf.InverseLerp(profile.minBrakingSpeedDifference, profile.maxBrakingSpeedDifference, absoluteSpeedDifference);
             }
 
-            car.brakePedalPosition = Mathf.MoveTowards(car.brakePedalPosition, targetPedalPosition, profile.normalPedalSpeed * Time.deltaTime);
+            // Press slowly on the brakes, but release with normal speed.
+            float pedalSpeed = targetPedalPosition > car.brakePedalPosition ? profile.brakingPedalSpeed : profile.normalPedalSpeed;
+            car.brakePedalPosition = Mathf.MoveTowards(car.brakePedalPosition, targetPedalPosition, pedalSpeed * Time.deltaTime);
         }
 
         private void UpdateGearshiftPosition()
         {
-            switch (state)
+            switch (drivingState)
             {
-                case State.MovingOff:
-                case State.Shifting:
+                case DrivingState.MovingOff:
+                case DrivingState.Shifting:
                     // Wait until the clutch is pressed before doing any shifts.
                     if (car.clutchPedalPosition == 1)
                     {
@@ -284,9 +332,9 @@ namespace TurboEsprit
                     }
                     break;
 
-                case State.Parked:
-                case State.Idling:
-                case State.Stopping:
+                case DrivingState.Parked:
+                case DrivingState.Idling:
+                case DrivingState.Stopping:
                     // When we're supposed to stand still, we shift out of gear to neutral.
                     if (car.gearshiftPosition != targetGearshiftPosition)
                     {
@@ -300,6 +348,33 @@ namespace TurboEsprit
                     }
                     break;
             }
+        }
+
+        private void UpdateSteeringWheelPosition()
+        {
+            switch (turningState)
+            {
+                case TurningState.Turning:
+                    // Calculate where the wheels should be pointed in car space.
+                    Quaternion worldToCar = Quaternion.FromToRotation(transform.forward, Vector3.forward);
+                    Vector3 targetDirectionInCarSpace = worldToCar * targetDirection;
+
+                    // Calculate target steering wheel position.
+                    float targetSteeringWheelPosition = car.GetSteeringWheelPositionForDirection(targetDirectionInCarSpace);
+
+                    float maxSteeringWheelPosition = Mathf.Pow(0.5f, car.speed / profile.steeringWheelLimitHalvingSpeed);
+                    float possibleTargetSteeringWheelPosition = Mathf.Clamp(targetSteeringWheelPosition, -maxSteeringWheelPosition, maxSteeringWheelPosition);
+
+                    car.steeringWheelPosition = Mathf.MoveTowards(car.steeringWheelPosition, possibleTargetSteeringWheelPosition, profile.steeringWheelSpeed * Time.deltaTime);
+
+                    break;
+            }
+        }
+
+        private float GetAllowedStraightAngleDegrees()
+        {
+            float angleReductionFactor = Mathf.Pow(0.5f, car.speed / profile.drivingStraightAllowedAngleHalvingSpeed);
+            return profile.drivingStraightBaseAllowedAngleDegrees * angleReductionFactor;
         }
     }
 }

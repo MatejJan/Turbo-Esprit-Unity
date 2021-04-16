@@ -16,8 +16,12 @@ namespace TurboEsprit
         // At what steps should the driver try to hold speed at when controls are disengaged.
         [SerializeField] private float roundingSpeedStepMph;
 
+        // The maximum angle the target direction will be away from current direction. 
+        [SerializeField] private float maxAngleChangeDifferenceDegrees;
+
         private int speedSign = 0;
         private bool keepTargetSpeed = true;
+        private float lastTurningInput = 0;
 
         // Properties in SI units.
 
@@ -28,6 +32,7 @@ namespace TurboEsprit
         protected override void Update()
         {
             UpdateTargetSpeed();
+            UpdateTargetDirection();
             base.Update();
         }
 
@@ -82,6 +87,31 @@ namespace TurboEsprit
                 targetSpeed = Mathf.Round(car.speed / roundingSpeedStep) * roundingSpeedStep;
                 keepTargetSpeed = true;
             }
+        }
+
+        private void UpdateTargetDirection()
+        {
+            // Read player input.
+            float turningInput = Input.GetAxis("Turning");
+
+            if (turningInput == 0)
+            {
+                // If the input was just released, square to 90 degrees.
+                if (lastTurningInput != 0)
+                {
+                    float currentCarAngleDegrees = GetCarAngleDegrees();
+                    float squaredCarAngleDegrees = Mathf.Round(currentCarAngleDegrees / 90) * 90;
+                    Quaternion rotationAmount = Quaternion.Euler(0, squaredCarAngleDegrees, 0);
+                    targetDirection = rotationAmount * Vector3.forward;
+                }
+            }
+            else
+            {
+                Quaternion rotationAmount = Quaternion.Euler(0, turningInput * maxAngleChangeDifferenceDegrees, 0);
+                targetDirection = rotationAmount * transform.forward;
+            }
+
+            lastTurningInput = turningInput;
         }
     }
 }

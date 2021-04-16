@@ -94,6 +94,12 @@ namespace TurboEsprit
 
         // Methods
 
+        public float GetSteeringWheelPositionForDirection(Vector3 direction)
+        {
+            float angle = Vector3.SignedAngle(Vector3.forward, direction, Vector3.up);
+            return angle / specifications.maxSteeringAngleDegrees;
+        }
+
         private void Awake()
         {
             drivenWheelsCount = specifications.drivetrainType == DrivetrainType.FourWheelDrive ? 4 : 2;

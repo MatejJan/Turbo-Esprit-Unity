@@ -37,11 +37,29 @@ namespace TurboEsprit
         }
 
         public CardinalDirection cardinalDirection { get; private set; }
+        public Quaternion worldToRelativeRotation { get; private set; }
 
         public Vector3 position => transform.position;
         public Vector3 direction => transform.forward;
 
+        /// <summary>
+        /// Returns the direction relative to the cardinal direction.
+        /// </summary>
+        public Vector3 relativeDirection
+        {
+            get
+            {
+                return worldToRelativeRotation * direction;
+            }
+        }
+
         // Methods
+
+        private void Awake()
+        {
+            cardinalDirection = CardinalDirection.North;
+            worldToRelativeRotation = Quaternion.identity;
+        }
 
         private void Update()
         {
@@ -156,7 +174,14 @@ namespace TurboEsprit
 
         private void UpdateTravelDirection()
         {
+            CardinalDirection previousCardinalDireciton = cardinalDirection;
             cardinalDirection = transform.forward.GetCardinalDirection();
+
+            if (previousCardinalDireciton != cardinalDirection)
+            {
+                Vector3 streetDirection = DirectionHelpers.cardinalDirectionVectors[cardinalDirection];
+                worldToRelativeRotation = Quaternion.FromToRotation(streetDirection, Vector3.forward);
+            }
         }
     }
 }

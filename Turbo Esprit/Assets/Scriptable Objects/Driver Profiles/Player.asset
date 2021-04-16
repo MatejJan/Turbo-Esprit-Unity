@@ -15,13 +15,19 @@ MonoBehaviour:
   normalPedalSpeed: 1
   shiftingPedalSpeed: 5
   movingOffPedalSpeed: 0.5
-  acceleratorChangeRate: 0.02
+  acceleratorChangeFactor: 0.02
   speedEqualizationDuration: 5
   minBrakingSpeedDifferenceMph: 10
   maxBrakingSpeedDifferenceMph: 20
   upshiftEngineRpm: 6000
-  upshiftEngineRpmWhenCloseToTarget: 4000
+  upshiftEngineRpmWhenCloseToTarget: 5000
   downshiftEngineRpm: 2000
   closeSpeedDifferenceMph: 5
   shiftingDuration: 0.2
   maxIdlingDuration: 3
+  steeringWheelSpeed: 0.75
+  steeringWheelLimitHalvingSpeedMph: 20
+  angleEqualizationDuration: 0.000001
+  drivingStraightThresholdSpeedMph: 90
+  drivingStraightThresholdSteeringChangeFactor: 0.01
+  drivingStraightThresholdAllowedAngleDegrees: 10

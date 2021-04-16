@@ -19,7 +19,7 @@ namespace TurboEsprit.Levels
 
             AddNorthSouthStreet(17, new[] { 1, 2, 4, 5, 8, 11 }, 4);
 
-            AddNorthSouthStreet(18, new[] { 0, 1, 4, 5, 8, 11 }, 6);
+            AddNorthSouthStreet(18, new[] { 0, 1, 4, 5, 8, 50 }, 6);
 
             AddNorthSouthStreet(19, new[] { 1, 2 }, 2);
             AddNorthSouthStreet(19, new[] { 3, 4 }, 2);
