@@ -520,6 +520,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   car: {fileID: 1735467168}
   maxDegrees: 270
+  maxAngularSpeedDegrees: 360
+  deadZoneDegrees: 0
   imageTransforms:
   - {fileID: 474651935}
   - {fileID: 396723776}
@@ -1540,7 +1542,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 6ef08c72c218e49e1bd4656d69df267a, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  steering: 0
   specifications: {fileID: 11400000, guid: db9b15fa6def14da4bf2641d1392be1c, type: 2}
   wheelColliderFrontLeft: {fileID: 6795690217805989207}
   wheelColliderFrontRight: {fileID: 501933091}
@@ -1683,8 +1684,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: b993c834a7ba6467395a1e854334de4c, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  carAngle: 0
-  targetAngle: 0
   profile: {fileID: 11400000, guid: 9a3649a128f254eb9b8922ab18f09f92, type: 2}
   speedChangeRateMph: 10
   minSpeedChangeDifferenceMph: 20
