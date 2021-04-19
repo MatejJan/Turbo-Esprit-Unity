@@ -46,10 +46,13 @@ namespace TurboEsprit
             car = GetComponent<Car>();
             carTracker = GetComponent<CarTracker>();
             targetDirection = transform.forward;
+            targetLane = 3;
         }
 
         protected virtual void Update()
         {
+            DrawDebugTarget();
+
             UpdateDesiredGearshiftPosition();
             UpdateDrivingState();
             UpdateTurningState();
@@ -65,11 +68,11 @@ namespace TurboEsprit
         {
             if (signed)
             {
-                return Vector3.SignedAngle(Vector3.forward, carTracker.relativeDirection, Vector3.up);
+                return Vector3.SignedAngle(Vector3.forward, carTracker.carStreetDirection, Vector3.up);
             }
             else
             {
-                return Vector3.Angle(Vector3.forward, carTracker.relativeDirection);
+                return Vector3.Angle(Vector3.forward, carTracker.carStreetDirection);
             }
         }
 
@@ -179,7 +182,7 @@ namespace TurboEsprit
                     // When direction is forward and we're back in allowed angle range, we go back to driving straight.
                     float carAngleDegrees = GetCarAngleDegrees(false);
                     float allowedStraightAngleDegrees = GetAllowedStraightAngleDegrees();
-                    //if (targetDirection == Vector3.forward && carAngleDegrees < allowedStraightAngleDegrees) turningState = TurningState.DrivingStraight;
+                    if (targetDirection == Vector3.forward && carAngleDegrees < allowedStraightAngleDegrees) turningState = TurningState.DrivingStraight;
                     break;
             }
         }
@@ -352,29 +355,106 @@ namespace TurboEsprit
 
         private void UpdateSteeringWheelPosition()
         {
+            Vector3 targetDirectionInCarSpace = Vector3.forward;
+
             switch (turningState)
             {
+                case TurningState.DrivingStraight:
+                    // Calculate if we should straighten out, assuming we want to approach zero side velocity when we reach target position.
+                    // We can integrate speed over time (as it linearly approeches zero) to get the position change.
+                    //      v * Δt
+                    // Δx = ------
+                    //        2
+                    // Now we just express v from the equation to get our target.
+                    float targetSidewaysPosition = carTracker.GetCenterOfLaneSidewaysPosition(targetLane);
+                    float currentSidewaysPosition = carTracker.sidewaysPosition;
+                    float sidewaysPositionDifference = targetSidewaysPosition - currentSidewaysPosition;
+                    float targetSidewaysSpeed = sidewaysPositionDifference / profile.drivingStraightEqualizationDuration * 2;
+
+                    // Calculate the direction we should be going in to have the target sideways speed.
+                    float speed = car.rigidbody.velocity.magnitude;
+                    float targetAngleDegrees;
+                    float maxAllowedAngleDegrees = GetAllowedStraightAngleDegrees();
+
+                    // Check if we can achieve target sideways speed with any angle.
+                    if (Mathf.Abs(targetSidewaysSpeed) < speed)
+                    {
+                        targetAngleDegrees = Mathf.Asin(targetSidewaysSpeed / speed) * Mathf.Rad2Deg;
+                    }
+                    else
+                    {
+                        // We can't, so just turn as much as possible.
+                        targetAngleDegrees = maxAllowedAngleDegrees * Math.Sign(targetSidewaysSpeed);
+                    }
+                    float allowedTargetAngleDegrees = Mathf.Clamp(targetAngleDegrees, -maxAllowedAngleDegrees, maxAllowedAngleDegrees);
+                    Vector3 targetDirectionInStreetSpace = Quaternion.Euler(0, allowedTargetAngleDegrees, 0) * Vector3.forward;
+
+                    // Convert it to direction in car space.
+                    Quaternion streetToCar = Quaternion.FromToRotation(transform.forward, carTracker.streetDirection);
+                    targetDirectionInCarSpace = streetToCar * targetDirectionInStreetSpace;
+
+                    break;
+
                 case TurningState.Turning:
                     // Calculate where the wheels should be pointed in car space.
                     Quaternion worldToCar = Quaternion.FromToRotation(transform.forward, Vector3.forward);
-                    Vector3 targetDirectionInCarSpace = worldToCar * targetDirection;
-
-                    // Calculate target steering wheel position.
-                    float targetSteeringWheelPosition = car.GetSteeringWheelPositionForDirection(targetDirectionInCarSpace);
-
-                    float maxSteeringWheelPosition = Mathf.Pow(0.5f, car.speed / profile.steeringWheelLimitHalvingSpeed);
-                    float possibleTargetSteeringWheelPosition = Mathf.Clamp(targetSteeringWheelPosition, -maxSteeringWheelPosition, maxSteeringWheelPosition);
-
-                    car.steeringWheelPosition = Mathf.MoveTowards(car.steeringWheelPosition, possibleTargetSteeringWheelPosition, profile.steeringWheelSpeed * Time.deltaTime);
+                    targetDirectionInCarSpace = worldToCar * targetDirection;
 
                     break;
             }
+
+            // Calculate target steering wheel position.
+            float targetSteeringWheelPosition = car.GetSteeringWheelPositionForDirection(targetDirectionInCarSpace);
+
+            float maxSteeringWheelPosition = Mathf.Pow(0.5f, car.speed / profile.steeringWheelLimitHalvingSpeed);
+            float possibleTargetSteeringWheelPosition = Mathf.Clamp(targetSteeringWheelPosition, -maxSteeringWheelPosition, maxSteeringWheelPosition);
+
+            car.steeringWheelPosition = Mathf.MoveTowards(car.steeringWheelPosition, possibleTargetSteeringWheelPosition, profile.steeringWheelSpeed * Time.deltaTime);
+
+            DrawDebugTargetCurrentDirection(targetDirectionInCarSpace);
         }
 
         private float GetAllowedStraightAngleDegrees()
         {
             float angleReductionFactor = Mathf.Pow(0.5f, car.speed / profile.drivingStraightAllowedAngleHalvingSpeed);
             return profile.drivingStraightBaseAllowedAngleDegrees * angleReductionFactor;
+        }
+
+        private void DrawDebugTarget()
+        {
+            float targetSidewaysPosition = carTracker.GetCenterOfLaneSidewaysPosition(targetLane);
+            Vector3 origin = carTracker.carWorldPosition + Vector3.up;
+
+            float streetHalfWidth = carTracker.representativeStreet.width / 2;
+            Vector2Int intersectionWorldPosition = carTracker.representativeStreet.startIntersection.position;
+
+            switch (carTracker.streetCardinalDirection)
+            {
+                case CardinalDirection.North:
+                    origin.x = intersectionWorldPosition.x - streetHalfWidth + targetSidewaysPosition;
+                    break;
+
+                case CardinalDirection.South:
+                    origin.x = intersectionWorldPosition.x + streetHalfWidth - targetSidewaysPosition;
+                    break;
+
+                case CardinalDirection.West:
+                    origin.y = intersectionWorldPosition.y - streetHalfWidth + targetSidewaysPosition;
+                    break;
+
+                case CardinalDirection.East:
+                    origin.y = intersectionWorldPosition.y + streetHalfWidth - targetSidewaysPosition;
+                    break;
+            }
+
+            Debug.DrawRay(origin, targetDirection * 100, Color.green);
+        }
+
+        private void DrawDebugTargetCurrentDirection(Vector3 directionInCarSpace)
+        {
+            Vector3 directionInWorldSpace = transform.localToWorldMatrix * directionInCarSpace;
+
+            Debug.DrawRay(transform.position + Vector3.up, directionInWorldSpace * 10, Color.cyan);
         }
     }
 }

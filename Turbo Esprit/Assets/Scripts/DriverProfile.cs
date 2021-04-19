@@ -31,6 +31,7 @@ namespace TurboEsprit
 
         public float drivingStraightBaseAllowedAngleDegrees;
         public float drivingStraightAllowedAngleHalvingSpeedMph;
+        public float drivingStraightEqualizationDuration;
 
         // Properties in SI units
 

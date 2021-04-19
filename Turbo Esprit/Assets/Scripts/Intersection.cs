@@ -303,5 +303,38 @@ namespace TurboEsprit
                 return false;
             }
         }
+
+        public Street GetStreetInDirection(CardinalDirection streetCardinalDirection)
+        {
+            switch (streetCardinalDirection)
+            {
+                case CardinalDirection.North:
+                    return northStreet;
+
+                case CardinalDirection.South:
+                    return southStreet;
+
+                case CardinalDirection.East:
+                    return eastStreet;
+
+                case CardinalDirection.West:
+                    return westStreet;
+
+                default:
+                    return null;
+            }
+        }
+
+        public Street GetStreetInOrientation(StreetOrientation streetOrientation)
+        {
+            if (streetOrientation == StreetOrientation.NorthSouth)
+            {
+                return northStreet != null ? northStreet : southStreet;
+            }
+            else
+            {
+                return eastStreet != null ? eastStreet : westStreet;
+            }
+        }
     }
 }

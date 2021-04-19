@@ -23,7 +23,7 @@ namespace TurboEsprit
                 // Follow along the street in the direction the car is facing.
                 if (trackedCar.street.orientation == StreetOrientation.EastWest)
                 {
-                    if (trackedCar.direction.x > 0)
+                    if (trackedCar.carWorldDirection.x > 0)
                     {
                         viewDirection = Vector3.right;
                     }
@@ -34,7 +34,7 @@ namespace TurboEsprit
                 }
                 else
                 {
-                    if (trackedCar.direction.z > 0)
+                    if (trackedCar.carWorldDirection.z > 0)
                     {
                         viewDirection = Vector3.forward;
                     }
@@ -47,13 +47,11 @@ namespace TurboEsprit
             else
             {
                 // Follow behind the car's cardinal direction.
-                viewDirection = DirectionHelpers.cardinalDirectionVectors[trackedCar.cardinalDirection];
+                viewDirection = DirectionHelpers.cardinalDirectionVectors[trackedCar.streetCardinalDirection];
             }
 
             // Set rotation to look along view direction.
             transform.rotation = Quaternion.LookRotation(viewDirection);
-
-            Debug.DrawLine(trackedCar.position + Vector3.up, trackedCar.position + viewDirection + Vector3.up, Color.yellow);
 
             // Update position to be in the center of the street/intersection, trailing behind the car by the specified offset.
             float cameraY = transform.position.y;
@@ -61,35 +59,45 @@ namespace TurboEsprit
             if (trackedCar.street != null)
             {
                 Bounds bounds = trackedCar.street.bounds;
-                Debug.DrawLine(bounds.min, bounds.min + Vector3.up * 10, Color.red);
-                Debug.DrawLine(bounds.max, bounds.max + Vector3.up * -10, Color.blue);
 
                 if (trackedCar.street.orientation == StreetOrientation.EastWest)
                 {
-                    transform.position = new Vector3(trackedCar.position.x, cameraY, bounds.center.z);
+                    transform.position = new Vector3(trackedCar.carWorldPosition.x, cameraY, bounds.center.z);
                 }
                 else
                 {
-                    transform.position = new Vector3(bounds.center.x, cameraY, trackedCar.position.z);
+                    transform.position = new Vector3(bounds.center.x, cameraY, trackedCar.carWorldPosition.z);
                 }
             }
             else
             {
                 Bounds bounds = trackedCar.intersection.bounds;
-                Debug.DrawLine(bounds.min, bounds.min + Vector3.up * 10, Color.red);
-                Debug.DrawLine(bounds.max, bounds.max + Vector3.up * -10, Color.blue);
 
-                if (trackedCar.cardinalDirection == CardinalDirection.East || trackedCar.cardinalDirection == CardinalDirection.West)
+                if (trackedCar.streetCardinalDirection == CardinalDirection.East || trackedCar.streetCardinalDirection == CardinalDirection.West)
                 {
-                    transform.position = new Vector3(trackedCar.position.x, cameraY, bounds.center.z);
+                    transform.position = new Vector3(trackedCar.carWorldPosition.x, cameraY, bounds.center.z);
                 }
                 else
                 {
-                    transform.position = new Vector3(bounds.center.x, cameraY, trackedCar.position.z);
+                    transform.position = new Vector3(bounds.center.x, cameraY, trackedCar.carWorldPosition.z);
                 }
             }
 
             transform.position += viewDirection * offsetFromCar;
+        }
+
+        private void OnDrawGizmos()
+        {
+            if (trackedCar.street != null)
+            {
+                Bounds bounds = trackedCar.street.bounds;
+                Gizmos.DrawWireCube(bounds.center, bounds.size);
+            }
+            else
+            {
+                Bounds bounds = trackedCar.intersection.bounds;
+                Gizmos.DrawWireCube(bounds.center, bounds.size);
+            }
         }
     }
 }

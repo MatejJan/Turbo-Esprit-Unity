@@ -13,6 +13,7 @@ namespace TurboEsprit
         public Intersection startIntersection;
         public Intersection endIntersection;
 
+        public float width { get; private set; }
         public Bounds bounds { get; private set; }
 
         private GameObject gameObject;
@@ -30,7 +31,7 @@ namespace TurboEsprit
             Vector2 endIntersectionHalfSize = endIntersection.GetSize() / 2;
 
             float roadWidth = lanesCount * City.laneWidth;
-            float width = roadWidth + 2 * City.sidewalkWidth;
+            width = roadWidth + 2 * City.sidewalkWidth;
             float length;
 
             Vector3 boundsSize;

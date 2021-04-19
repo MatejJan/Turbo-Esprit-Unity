@@ -19,9 +19,13 @@ namespace TurboEsprit
         // The maximum angle the target direction will be away from current direction. 
         [SerializeField] private float maxAngleChangeDifferenceDegrees;
 
+        // The amount of time when turning only affects lane change.
+        [SerializeField] private float laneChangeOnlyDuration;
+
         private int speedSign = 0;
         private bool keepTargetSpeed = true;
         private float lastTurningInput = 0;
+        private float turningInputNonZeroTime = 0;
 
         // Properties in SI units.
 
@@ -103,12 +107,47 @@ namespace TurboEsprit
                     float squaredCarAngleDegrees = Mathf.Round(currentCarAngleDegrees / 90) * 90;
                     Quaternion rotationAmount = Quaternion.Euler(0, squaredCarAngleDegrees, 0);
                     targetDirection = rotationAmount * Vector3.forward;
+
+                    // Reset turning input time for next time.
+                    turningInputNonZeroTime = 0;
                 }
             }
             else
             {
-                Quaternion rotationAmount = Quaternion.Euler(0, turningInput * maxAngleChangeDifferenceDegrees, 0);
-                targetDirection = rotationAmount * transform.forward;
+                // If the input was just changed, change lane.
+                if (turningInput < 0 && lastTurningInput >= 0)
+                {
+                    // We want to go left, but if our current target was to go right, just return to current lane.
+                    if (targetLane > carTracker.currentLane)
+                    {
+                        targetLane = carTracker.currentLane;
+                    }
+                    else
+                    {
+                        targetLane = Math.Max(carTracker.currentLane - 1, 0);
+                    }
+                }
+                else if (turningInput > 0 && lastTurningInput <= 0)
+                {
+                    // We want to go right, but if our current target was to go left, just return to current lane.
+                    if (targetLane < carTracker.currentLane)
+                    {
+                        targetLane = carTracker.currentLane;
+                    }
+                    else
+                    {
+                        targetLane = Math.Min(carTracker.currentLane + 1, carTracker.representativeStreet.lanesCount + 1);
+                    }
+                }
+
+                // If turning has been active enough time, change target direction.
+                turningInputNonZeroTime += Time.deltaTime;
+
+                if (turningInputNonZeroTime > laneChangeOnlyDuration)
+                {
+                    Quaternion rotationAmount = Quaternion.Euler(0, turningInput * maxAngleChangeDifferenceDegrees, 0);
+                    targetDirection = rotationAmount * transform.forward;
+                }
             }
 
             lastTurningInput = turningInput;

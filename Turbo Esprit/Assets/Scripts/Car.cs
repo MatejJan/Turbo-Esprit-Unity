@@ -28,7 +28,6 @@ namespace TurboEsprit
         private float averageDriveWheelsRpm = 0;
 
         private int drivenWheelsCount;
-        private new Rigidbody rigidbody;
         private IgnitionSwitchPosition _ignitionSwitchPosition;
 
         // Enums
@@ -91,6 +90,7 @@ namespace TurboEsprit
         public float speed => driveAxlesAngularSpeed * wheelColliderFrontLeft.radius;
         public float engineRpm => engineAngularSpeed * PhysicsHelper.angularSpeedToRpm;
         public EngineState engineState { get; private set; }
+        public new Rigidbody rigidbody { get; private set; }
 
         // Methods
 

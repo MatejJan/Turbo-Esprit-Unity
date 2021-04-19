@@ -14,6 +14,14 @@ namespace TurboEsprit
             { CardinalDirection.South, Vector3.back }
         };
 
+        public static readonly Dictionary<CardinalDirection, StreetOrientation> cardinalDirectionStreetOrientations = new Dictionary<CardinalDirection, StreetOrientation>
+        {
+            { CardinalDirection.East, StreetOrientation.EastWest },
+            { CardinalDirection.West, StreetOrientation.EastWest },
+            { CardinalDirection.North, StreetOrientation.NorthSouth },
+            { CardinalDirection.South, StreetOrientation.NorthSouth }
+        };
+
         public static CardinalDirection GetCardinalDirectionForVector(Vector3 vector)
         {
             float angleDegrees = Mathf.Atan2(vector.z, vector.x) * Mathf.Rad2Deg;
