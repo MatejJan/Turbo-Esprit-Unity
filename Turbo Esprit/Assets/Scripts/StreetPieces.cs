@@ -12,6 +12,7 @@ namespace TurboEsprit
         public GameObject sidewalkCornerPrefab;
         public GameObject solidLinePrefab;
         public GameObject brokenLinePrefab;
+        public GameObject buildingPrefab;
 
         public static void ChangeBrokenLineTiling(GameObject brokenLine)
         {

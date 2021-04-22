@@ -1,12 +1,12 @@
 %YAML 1.1
 %TAG !u! tag:unity3d.com,2011:
---- !u!114 &6761266500253945803
+--- !u!114 &689679634896399811
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 5384628885097100273}
+  m_GameObject: {fileID: 9122521933852254667}
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 8233d90336aea43098adf6dbabd606a2, type: 3}
@@ -129,24 +129,24 @@ MonoBehaviour:
   m_Positions:
   - {x: 0, y: 0, z: 1}
   - {x: 1, y: 0, z: 1}
-  - {x: 0, y: 0.1, z: 1}
-  - {x: 1, y: 0.1, z: 1}
+  - {x: 0, y: 1, z: 1}
+  - {x: 1, y: 1, z: 1}
   - {x: 1, y: 0, z: 1}
   - {x: 1, y: 0, z: 0}
-  - {x: 1, y: 0.1, z: 1}
-  - {x: 1, y: 0.1, z: 0}
+  - {x: 1, y: 1, z: 1}
+  - {x: 1, y: 1, z: 0}
   - {x: 1, y: 0, z: 0}
   - {x: 0, y: 0, z: 0}
-  - {x: 1, y: 0.1, z: 0}
-  - {x: 0, y: 0.1, z: 0}
+  - {x: 1, y: 1, z: 0}
+  - {x: 0, y: 1, z: 0}
   - {x: 0, y: 0, z: 0}
   - {x: 0, y: 0, z: 1}
-  - {x: 0, y: 0.1, z: 0}
-  - {x: 0, y: 0.1, z: 1}
-  - {x: 0, y: 0.1, z: 1}
-  - {x: 1, y: 0.1, z: 1}
-  - {x: 0, y: 0.1, z: 0}
-  - {x: 1, y: 0.1, z: 0}
+  - {x: 0, y: 1, z: 0}
+  - {x: 0, y: 1, z: 1}
+  - {x: 0, y: 1, z: 1}
+  - {x: 1, y: 1, z: 1}
+  - {x: 0, y: 1, z: 0}
+  - {x: 1, y: 1, z: 0}
   - {x: 0, y: 0, z: 0}
   - {x: 1, y: 0, z: 0}
   - {x: 0, y: 0, z: 1}
@@ -154,20 +154,20 @@ MonoBehaviour:
   m_Textures0:
   - {x: 0, y: 0}
   - {x: -1, y: 0}
-  - {x: 0, y: 0.1}
-  - {x: -1, y: 0.1}
+  - {x: 0, y: 1}
+  - {x: -1, y: 1}
   - {x: 1, y: 0}
   - {x: 0, y: 0}
-  - {x: 1, y: 0.1}
-  - {x: 0, y: 0.1}
+  - {x: 1, y: 1}
+  - {x: 0, y: 1}
   - {x: 1, y: 0}
   - {x: 0, y: 0}
-  - {x: 1, y: 0.1}
-  - {x: 0, y: 0.1}
+  - {x: 1, y: 1}
+  - {x: 0, y: 1}
   - {x: 0, y: 0}
   - {x: -1, y: 0}
-  - {x: 0, y: 0.1}
-  - {x: -1, y: 0.1}
+  - {x: 0, y: 1}
+  - {x: -1, y: 1}
   - {x: 0, y: 1}
   - {x: 1, y: 1}
   - {x: 0, y: 0}
@@ -216,7 +216,20 @@ MonoBehaviour:
   m_SelectedFaces: 
   m_SelectedEdges: []
   m_SelectedVertices: 
---- !u!1001 &5134306289762587597
+--- !u!65 &9059612593574744547
+BoxCollider:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 9122521933852254667}
+  m_Material: {fileID: 13400000, guid: e739af81f064d4076ae4a1899a24771c, type: 2}
+  m_IsTrigger: 0
+  m_Enabled: 1
+  serializedVersion: 2
+  m_Size: {x: 1, y: 1, z: 1}
+  m_Center: {x: 0.5, y: 0.5, z: 0.5}
+--- !u!1001 &8314496426237641207
 PrefabInstance:
   m_ObjectHideFlags: 0
   serializedVersion: 2
@@ -225,16 +238,16 @@ PrefabInstance:
     m_Modifications:
     - target: {fileID: 1007314481365082172, guid: cd568d62f1d264584bef592132367bc4, type: 3}
       propertyPath: m_Name
-      value: Sidewalk
+      value: Building
       objectReference: {fileID: 0}
     - target: {fileID: 1007314481365082172, guid: cd568d62f1d264584bef592132367bc4, type: 3}
       propertyPath: m_Layer
-      value: 12
+      value: 13
       objectReference: {fileID: 0}
     - target: {fileID: 1790986651420256226, guid: cd568d62f1d264584bef592132367bc4, type: 3}
       propertyPath: m_Materials.Array.data[0]
       value: 
-      objectReference: {fileID: 2100000, guid: baa4fdc1f19dd4dac9007469426f6027, type: 2}
+      objectReference: {fileID: 2100000, guid: f1e06243fe8624c399d50db7998dca74, type: 2}
     - target: {fileID: 2109841457187880309, guid: cd568d62f1d264584bef592132367bc4, type: 3}
       propertyPath: m_Mesh
       value: 
@@ -287,10 +300,11 @@ PrefabInstance:
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
       objectReference: {fileID: 0}
-    m_RemovedComponents: []
+    m_RemovedComponents:
+    - {fileID: 3666319347798041164, guid: cd568d62f1d264584bef592132367bc4, type: 3}
   m_SourcePrefab: {fileID: 100100000, guid: cd568d62f1d264584bef592132367bc4, type: 3}
---- !u!1 &5384628885097100273 stripped
+--- !u!1 &9122521933852254667 stripped
 GameObject:
   m_CorrespondingSourceObject: {fileID: 1007314481365082172, guid: cd568d62f1d264584bef592132367bc4, type: 3}
-  m_PrefabInstance: {fileID: 5134306289762587597}
+  m_PrefabInstance: {fileID: 8314496426237641207}
   m_PrefabAsset: {fileID: 0}

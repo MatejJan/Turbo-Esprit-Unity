@@ -28,5 +28,6 @@ MonoBehaviour:
   maxIdlingDuration: 3
   steeringWheelSpeed: 0.75
   steeringWheelLimitHalvingSpeedMph: 20
-  drivingStraightBaseAllowedAngleDegrees: 0
-  drivingStraightAllowedAngleHalvingSpeedMph: 0
+  drivingStraightBaseAllowedAngleDegrees: 30
+  drivingStraightAllowedAngleHalvingSpeedMph: 30
+  drivingStraightEqualizationDuration: 2

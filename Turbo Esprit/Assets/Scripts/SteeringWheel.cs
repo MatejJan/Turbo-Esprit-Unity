@@ -8,8 +8,12 @@ namespace TurboEsprit
     {
         [SerializeField] protected Car car;
         [SerializeField] private float maxDegrees;
+        [SerializeField] private float rotationSmoothTime;
 
         [SerializeField] private Transform[] imageTransforms;
+
+        private float rotationDegrees = 0;
+        private float rotationVelocity = 0;
 
         private void Update()
         {
@@ -18,7 +22,8 @@ namespace TurboEsprit
 
         private void UpdateRotation()
         {
-            float rotationDegrees = -car.steeringWheelPosition * maxDegrees;
+            float targetRotationDegrees = -car.steeringWheelPosition * maxDegrees;
+            rotationDegrees = Mathf.SmoothDamp(rotationDegrees, targetRotationDegrees, ref rotationVelocity, rotationSmoothTime);
 
             foreach (Transform transform in imageTransforms)
             {

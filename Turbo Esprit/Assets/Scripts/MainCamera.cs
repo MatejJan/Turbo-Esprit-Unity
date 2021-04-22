@@ -16,42 +16,14 @@ namespace TurboEsprit
 
         private void UpdateTransform()
         {
-            Vector3 viewDirection;
+            // Look along the street space cardinal direction, but only turn 180 degrees if the car is more than 95 degrees turned to prevent camera jumping back and forth when driving perpendicular to the street.
+            Vector3 streetDirection = DirectionHelpers.cardinalDirectionVectors[trackedCar.streetCardinalDirection];
 
-            if (trackedCar.street != null)
+            if (Vector3.Angle(transform.forward, streetDirection) < 135 || Vector3.Angle(transform.forward, trackedCar.carWorldDirection) > 95)
             {
-                // Follow along the street in the direction the car is facing.
-                if (trackedCar.street.orientation == StreetOrientation.EastWest)
-                {
-                    if (trackedCar.carWorldDirection.x > 0)
-                    {
-                        viewDirection = Vector3.right;
-                    }
-                    else
-                    {
-                        viewDirection = Vector3.left;
-                    }
-                }
-                else
-                {
-                    if (trackedCar.carWorldDirection.z > 0)
-                    {
-                        viewDirection = Vector3.forward;
-                    }
-                    else
-                    {
-                        viewDirection = Vector3.back;
-                    }
-                }
+                // Set rotation to look along the street.
+                transform.rotation = Quaternion.LookRotation(streetDirection);
             }
-            else
-            {
-                // Follow behind the car's cardinal direction.
-                viewDirection = DirectionHelpers.cardinalDirectionVectors[trackedCar.streetCardinalDirection];
-            }
-
-            // Set rotation to look along view direction.
-            transform.rotation = Quaternion.LookRotation(viewDirection);
 
             // Update position to be in the center of the street/intersection, trailing behind the car by the specified offset.
             float cameraY = transform.position.y;
@@ -83,20 +55,29 @@ namespace TurboEsprit
                 }
             }
 
-            transform.position += viewDirection * offsetFromCar;
+            transform.position += transform.forward * offsetFromCar;
         }
 
         private void OnDrawGizmos()
         {
+            void DrawWireCube(Bounds bounds)
+            {
+                Gizmos.DrawWireCube(bounds.center, bounds.size);
+            }
+
             if (trackedCar.street != null)
             {
-                Bounds bounds = trackedCar.street.bounds;
-                Gizmos.DrawWireCube(bounds.center, bounds.size);
+                DrawWireCube(trackedCar.street.bounds);
+                if (trackedCar.street.startIntersection != null) DrawWireCube(trackedCar.street.startIntersection.bounds);
+                if (trackedCar.street.endIntersection != null) DrawWireCube(trackedCar.street.endIntersection.bounds);
             }
             else
             {
-                Bounds bounds = trackedCar.intersection.bounds;
-                Gizmos.DrawWireCube(bounds.center, bounds.size);
+                DrawWireCube(trackedCar.intersection.bounds);
+                if (trackedCar.intersection.northStreet != null) DrawWireCube(trackedCar.intersection.northStreet.bounds);
+                if (trackedCar.intersection.southStreet != null) DrawWireCube(trackedCar.intersection.southStreet.bounds);
+                if (trackedCar.intersection.eastStreet != null) DrawWireCube(trackedCar.intersection.eastStreet.bounds);
+                if (trackedCar.intersection.westStreet != null) DrawWireCube(trackedCar.intersection.westStreet.bounds);
             }
         }
     }

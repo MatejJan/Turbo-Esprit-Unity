@@ -34,6 +34,7 @@ namespace TurboEsprit
             width = roadWidth + 2 * City.sidewalkWidth;
             float length;
 
+            Vector3 boundsOrigin;
             Vector3 boundsSize;
 
             if (orientation == StreetOrientation.EastWest)
@@ -51,6 +52,8 @@ namespace TurboEsprit
                 // Rotate the road so the local Z axis goes in the positive global X direction.
                 gameObject.transform.localRotation = Quaternion.Euler(0, 90, 0);
 
+                boundsOrigin = gameObject.transform.localPosition;
+                boundsOrigin.z -= width;
                 boundsSize = new Vector3(length, City.boundsHeight, width);
             }
             else
@@ -65,14 +68,15 @@ namespace TurboEsprit
                     z = startIntersection.position.y + startIntersectionHalfSize.y
                 };
 
+                boundsOrigin = gameObject.transform.localPosition;
                 boundsSize = new Vector3(width, City.boundsHeight, length);
             }
 
             // Set bounds.
             bounds = new Bounds
             {
-                min = gameObject.transform.localPosition + new Vector3(0, City.boundsBaseY, 0),
-                max = gameObject.transform.localPosition + boundsSize
+                min = boundsOrigin + new Vector3(0, City.boundsBaseY, 0),
+                max = boundsOrigin + boundsSize
             };
 
             // Place prefabs.
@@ -143,6 +147,39 @@ namespace TurboEsprit
                 stopLine.transform.localRotation = Quaternion.Euler(0, 270, 0);
                 stopLine.transform.localPosition = new Vector3 { x = width - City.sidewalkWidth, z = City.lineWidth / 2 };
             }
+
+            // Place buildings.
+            void CreateBuilding(float x, float z, float depth, int heightIndex)
+            {
+                GameObject building = streetPieces.Instantiate(streetPieces.buildingPrefab, gameObject);
+                building.transform.localScale = new Vector3(City.buildingWidth, City.buildingHeights[heightIndex], depth);
+                building.transform.localPosition = new Vector3(x, 0, z);
+            }
+
+            void PlaceBuildings(float z, float depth)
+            {
+                CreateBuilding(-City.buildingWidth, z, depth, Random.Range(0, City.buildingHeights.Length));
+                CreateBuilding(width, z, depth, Random.Range(0, City.buildingHeights.Length));
+            }
+
+            void PlaceBuildingsInRange(float minZ, float maxZ)
+            {
+                // See if we could put 2 or more buildings in this range.
+                if (maxZ - minZ < City.minBuildingLength * 2)
+                {
+                    // No, this should be 1 building.
+                    PlaceBuildings(minZ, maxZ - minZ);
+                }
+                else
+                {
+                    // Yes, split into two parts.
+                    float midZ = Random.Range(minZ + City.minBuildingLength, maxZ - City.minBuildingLength);
+                    PlaceBuildingsInRange(minZ, midZ);
+                    PlaceBuildingsInRange(midZ, maxZ);
+                }
+            }
+
+            PlaceBuildingsInRange(City.minBuildingLength, length - City.minBuildingLength);
         }
     }
 }

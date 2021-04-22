@@ -201,6 +201,25 @@ namespace TurboEsprit
                     StreetPieces.ChangeBrokenLineTiling(laneLine);
                 }
             }
+
+            // Place buildings in 4 corners.
+            void CreateBuilding(float x, float z, float width = City.minBuildingLength, float depth = City.minBuildingLength)
+            {
+                GameObject building = streetPieces.Instantiate(streetPieces.buildingPrefab, gameObject);
+                building.transform.localScale = new Vector3(width, City.buildingHeights[1], depth);
+                building.transform.localPosition = new Vector3(x, 0, z);
+            }
+
+            CreateBuilding(-City.minBuildingLength, -City.minBuildingLength);
+            CreateBuilding(-City.minBuildingLength, size.y);
+            CreateBuilding(size.x, -City.minBuildingLength);
+            CreateBuilding(size.x, size.y);
+
+            // Place buildings in directions where there is no street.
+            if (northStreet == null) CreateBuilding(0, size.y, width: size.x);
+            if (southStreet == null) CreateBuilding(0, -City.minBuildingLength, width: size.x);
+            if (eastStreet == null) CreateBuilding(size.x, 0, depth: size.y);
+            if (westStreet == null) CreateBuilding(-City.minBuildingLength, 0, depth: size.y);
         }
 
         public Vector2 GetSize()

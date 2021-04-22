@@ -11,8 +11,11 @@ namespace TurboEsprit
         public const float sidewalkWidth = 3;
         public const float lineWidth = 0.2f;
         public const float brokenLineSpacing = 5;
-        public const float boundsHeight = 11;
+        public const float boundsHeight = 16;
         public const float boundsBaseY = -1;
+        public const float buildingWidth = 10;
+        public const float minBuildingLength = 20;
+        public static readonly float[] buildingHeights = new float[] { 8, 11, 13, 16 };
 
         public StreetLayout streetLayout { get; private set; }
         public StreetPieces streetPieces { get; private set; }

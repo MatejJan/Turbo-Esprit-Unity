@@ -103,10 +103,8 @@ namespace TurboEsprit
                 // If the input was just released, square to 90 degrees.
                 if (lastTurningInput != 0)
                 {
-                    float currentCarAngleDegrees = GetCarAngleDegrees();
-                    float squaredCarAngleDegrees = Mathf.Round(currentCarAngleDegrees / 90) * 90;
-                    Quaternion rotationAmount = Quaternion.Euler(0, squaredCarAngleDegrees, 0);
-                    targetDirection = rotationAmount * Vector3.forward;
+                    CardinalDirection cardinalDirection = DirectionHelpers.GetCardinalDirectionForVector(transform.forward);
+                    targetDirection = DirectionHelpers.cardinalDirectionVectors[cardinalDirection];
 
                     // Reset turning input time for next time.
                     turningInputNonZeroTime = 0;
@@ -145,8 +143,9 @@ namespace TurboEsprit
 
                 if (turningInputNonZeroTime > laneChangeOnlyDuration)
                 {
-                    Quaternion rotationAmount = Quaternion.Euler(0, turningInput * maxAngleChangeDifferenceDegrees, 0);
-                    targetDirection = rotationAmount * transform.forward;
+                    float rotationAngleDegrees = turningInput * maxAngleChangeDifferenceDegrees * Mathf.Sign(car.speed);
+                    Quaternion rotation = Quaternion.Euler(0, rotationAngleDegrees, 0);
+                    targetDirection = rotation * transform.forward;
                 }
             }
 

@@ -14,6 +14,8 @@ namespace TurboEsprit
         private Street _street;
         private Intersection _intersection;
 
+        private Street dummyStreet = new Street();
+
         // Properties
 
         public Street street
@@ -45,7 +47,13 @@ namespace TurboEsprit
             {
                 if (street != null) return street;
 
-                return intersection.GetStreetInOrientation(streetOrientation);
+                Street intersectionStreet = intersection.GetStreetInOrientation(streetOrientation);
+                if (intersectionStreet != null) return intersectionStreet;
+
+                // This intersection is a dead end, so use the dummy street.
+                dummyStreet.startIntersection = intersection;
+                dummyStreet.endIntersection = intersection;
+                return dummyStreet;
             }
         }
 
@@ -85,13 +93,13 @@ namespace TurboEsprit
                         return carWorldPosition.x - (intersectionWorldPosition.x - streetHalfWidth);
 
                     case CardinalDirection.South:
-                        return carWorldPosition.x - (intersectionWorldPosition.x + streetHalfWidth);
+                        return (intersectionWorldPosition.x + streetHalfWidth) - carWorldPosition.x;
 
                     case CardinalDirection.West:
                         return carWorldPosition.z - (intersectionWorldPosition.y - streetHalfWidth);
 
                     case CardinalDirection.East:
-                        return carWorldPosition.z - (intersectionWorldPosition.y + streetHalfWidth);
+                        return (intersectionWorldPosition.y + streetHalfWidth) - carWorldPosition.z;
 
                     default:
                         return 0;
@@ -141,6 +149,7 @@ namespace TurboEsprit
         {
             streetCardinalDirection = CardinalDirection.North;
             worldToStreetRotation = Quaternion.identity;
+            dummyStreet.lanesCount = 2;
         }
 
         private void Update()
@@ -256,10 +265,41 @@ namespace TurboEsprit
 
         private void UpdateTravelDirection()
         {
-            CardinalDirection previousCardinalDireciton = streetCardinalDirection;
-            streetCardinalDirection = transform.forward.GetCardinalDirection();
+            CardinalDirection previousStreetCardinalDireciton = streetCardinalDirection;
 
-            if (previousCardinalDireciton != streetCardinalDirection)
+            if (street != null)
+            {
+                // On streets, the only directions possible are along the street.
+                if (street.orientation == StreetOrientation.EastWest)
+                {
+                    if (carWorldDirection.x > 0)
+                    {
+                        streetCardinalDirection = CardinalDirection.East;
+                    }
+                    else
+                    {
+                        streetCardinalDirection = CardinalDirection.West;
+                    }
+                }
+                else
+                {
+                    if (carWorldDirection.z > 0)
+                    {
+                        streetCardinalDirection = CardinalDirection.North;
+                    }
+                    else
+                    {
+                        streetCardinalDirection = CardinalDirection.South;
+                    }
+                }
+            }
+            else
+            {
+                // In intersections, all 4 directions are possible, so choose the nearest one.
+                streetCardinalDirection = transform.forward.GetCardinalDirection();
+            }
+
+            if (previousStreetCardinalDireciton != streetCardinalDirection)
             {
                 Vector3 streetDirection = DirectionHelpers.cardinalDirectionVectors[streetCardinalDirection];
                 worldToStreetRotation = Quaternion.FromToRotation(streetDirection, Vector3.forward);

@@ -40,6 +40,6 @@ MonoBehaviour:
   idleAirControlStopRpm: 1700
   revLimiterStartRpm: 6500
   revLimiterStopRpm: 7500
-  downforceCoefficient: 3
+  downforceCoefficient: 5
   dragForceCoefficient: 0.3
   frontalArea: 1.85

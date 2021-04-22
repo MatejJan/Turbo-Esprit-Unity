@@ -78,6 +78,10 @@ PrefabInstance:
       propertyPath: m_Name
       value: Solid Line
       objectReference: {fileID: 0}
+    - target: {fileID: 1007314481365082172, guid: cd568d62f1d264584bef592132367bc4, type: 3}
+      propertyPath: m_Layer
+      value: 12
+      objectReference: {fileID: 0}
     - target: {fileID: 1790986651420256226, guid: cd568d62f1d264584bef592132367bc4, type: 3}
       propertyPath: m_Materials.Array.data[0]
       value: 
