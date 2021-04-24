@@ -33,13 +33,13 @@ MonoBehaviour:
   engineToWheelsEqualizationFactor: 5
   engineBrakingCoefficient: 0.4
   maxSteeringAngleDegrees: 30
-  maxSteeringAngleDeltaRateDegrees: 30
+  maxSteeringAngleDeltaRateDegrees: 90
   maxBrakingTorque: 1000
   starterTorque: 50
   starterStopRpm: 1200
   idleAirControlStopRpm: 1700
   revLimiterStartRpm: 6500
   revLimiterStopRpm: 7500
-  downforceCoefficient: 5
+  downforceCoefficient: 10
   dragForceCoefficient: 0.3
   frontalArea: 1.85
