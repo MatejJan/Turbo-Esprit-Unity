@@ -135,6 +135,18 @@ PrefabInstance:
       value: 0
       objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: 728267e846048482ba40c9018ac5b9eb, type: 3}
+      propertyPath: m_LocalScale.x
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: 728267e846048482ba40c9018ac5b9eb, type: 3}
+      propertyPath: m_LocalScale.y
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: 728267e846048482ba40c9018ac5b9eb, type: 3}
+      propertyPath: m_LocalScale.z
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: 728267e846048482ba40c9018ac5b9eb, type: 3}
       propertyPath: m_LocalPosition.x
       value: 0
       objectReference: {fileID: 0}
@@ -3093,6 +3105,7 @@ GameObject:
   - component: {fileID: 1464943637}
   - component: {fileID: 1464943639}
   - component: {fileID: 1464943638}
+  - component: {fileID: 1464943640}
   m_Layer: 0
   m_Name: City
   m_TagString: Untagged
@@ -3144,6 +3157,20 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 524077a3ec1ba4b649dbf8016d4defda, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+--- !u!114 &1464943640
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1464943636}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 039ed9fdca3af4f6bb50eb258f97ad89, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  gameMode: {fileID: 1764891422}
+  trafficCarPrefab: {fileID: 8829416743059340641, guid: 0f3f72ae782f5464997054e8ab1272a7, type: 3}
 --- !u!1 &1550185994
 GameObject:
   m_ObjectHideFlags: 0
@@ -3685,7 +3712,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 9596c253f82dc4d69b361877d0162987, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  city: {fileID: 1464943639}
 --- !u!114 &1701412891
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -3836,7 +3862,7 @@ AudioSource:
   Mute: 0
   Spatialize: 0
   SpatializePostEffects: 0
-  Priority: 128
+  Priority: 1
   DopplerLevel: 1
   MinDistance: 1
   MaxDistance: 500
@@ -3942,7 +3968,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 9596c253f82dc4d69b361877d0162987, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  city: {fileID: 1464943639}
 --- !u!114 &1735467172
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -3979,7 +4004,7 @@ AudioSource:
   Mute: 0
   Spatialize: 0
   SpatializePostEffects: 0
-  Priority: 128
+  Priority: 1
   DopplerLevel: 1
   MinDistance: 1
   MaxDistance: 500
@@ -4075,7 +4100,7 @@ AudioSource:
   Mute: 0
   Spatialize: 0
   SpatializePostEffects: 0
-  Priority: 128
+  Priority: 1
   DopplerLevel: 1
   MinDistance: 1
   MaxDistance: 500

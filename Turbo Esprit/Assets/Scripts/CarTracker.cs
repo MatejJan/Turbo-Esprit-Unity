@@ -9,14 +9,14 @@ namespace TurboEsprit
     {
         // Fields
 
-        [SerializeField] private City city;
-
         private Street _street;
         private Intersection _intersection;
 
         private Street dummyStreet = new Street();
 
         // Properties
+
+        public City city { get; set; }
 
         public Street street
         {
@@ -211,6 +211,8 @@ namespace TurboEsprit
             }
 
             Debug.LogError($"Unable to track car in the city network. #{transform.position}");
+            _street = null;
+            _intersection = null;
         }
 
         private void UpdatePositionFromStreetIntersections()

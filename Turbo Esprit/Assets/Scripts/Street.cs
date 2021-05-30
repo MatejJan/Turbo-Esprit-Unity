@@ -14,9 +14,12 @@ namespace TurboEsprit
         public Intersection endIntersection;
 
         public float width { get; private set; }
+        public float length { get; private set; }
         public Bounds bounds { get; private set; }
 
         private GameObject gameObject;
+
+        public Transform transform => gameObject.transform;
 
         public StreetOrientation orientation => startIntersection.position.y == endIntersection.position.y ? StreetOrientation.EastWest : StreetOrientation.NorthSouth;
 
@@ -32,7 +35,6 @@ namespace TurboEsprit
 
             float roadWidth = lanesCount * City.laneWidth;
             width = roadWidth + 2 * City.sidewalkWidth;
-            float length;
 
             Vector3 boundsOrigin;
             Vector3 boundsSize;

@@ -95,6 +95,44 @@ namespace TurboEsprit
 
         // Methods
 
+        public void InitializeSpeed(float speed)
+        {
+            // Force the rigid body to move at desired speed.
+            rigidbody.velocity = transform.forward * speed;
+
+            // Determine the gear the car should be in.
+            if (speed == 0)
+            {
+                gearshiftPosition = GearshiftPosition.Neutral;
+            }
+            else
+            {
+                gearshiftPosition = GearshiftPosition.FirstGear;
+
+                do
+                {
+                    // Calculate RPM to have this speed.
+                    float totalDriveRatio = GetTotalDriveRatio(gearshiftPosition);
+                    float driveAxlesAngularSpeed = wheelColliderFrontLeft.radius / speed;
+                    float desiredEngineAngularSpeed = driveAxlesAngularSpeed * totalDriveRatio;
+                    float desiredEngineRpm = desiredEngineAngularSpeed * PhysicsHelper.angularSpeedToRpm;
+
+                    // If needed RPM is bigger than the medium car RPM, try higher gear.
+                    if (desiredEngineRpm > specifications.revLimiterStartRpm / 2)
+                    {
+                        gearshiftPosition++;
+                    }
+                    else
+                    {
+                        // We are in a good gear. Force the engine to rotate at this RPM.
+                        engineAngularSpeed = desiredEngineAngularSpeed;
+                        break;
+                    }
+
+                } while (gearshiftPosition < topGear);
+            }
+        }
+
         public float GetSteeringWheelPositionForDirection(Vector3 direction)
         {
             float angle = Vector3.SignedAngle(Vector3.forward, direction, Vector3.up);

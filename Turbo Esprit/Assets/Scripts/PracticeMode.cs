@@ -4,14 +4,14 @@ using UnityEngine;
 
 namespace TurboEsprit
 {
-    public class PracticeMode : MonoBehaviour
+    public class PracticeMode : GameMode
     {
+        public override GameCamera currentCamera => cameras[currentCameraIndex];
+
         [SerializeField] private CarType[] carTypes;
         [SerializeField] private GameCamera[] cameras;
         [SerializeField] private Vector2Int startPosition;
         [SerializeField] private City city;
-
-        private GameCamera currentCamera => cameras[currentCameraIndex];
 
         private CarType currentCarType;
         private int currentCameraIndex;
@@ -55,6 +55,7 @@ namespace TurboEsprit
             }
 
             currentCarType = carTypes[index];
+            currentCarType.car.GetComponent<CarTracker>().city = city;
             currentCarType.car.SetActive(true);
             currentCarType.dashboard.SetActive(true);
 

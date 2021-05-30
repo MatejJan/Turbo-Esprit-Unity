@@ -1,5 +1,5 @@
 fileFormatVersion: 2
-guid: 728267e846048482ba40c9018ac5b9eb
+guid: 12b22658ed2804a8ca9b1683d6c4d3cf
 ModelImporter:
   serializedVersion: 20200
   internalIDToNameTable: []
@@ -24,6 +24,11 @@ ModelImporter:
       assembly: UnityEngine.CoreModule
       name: Matte
     second: {fileID: 2100000, guid: f41c90ef5a35041c38388f05fcba2050, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: Tire
+    second: {fileID: 2100000, guid: 34cc37179ffff4c6e9eada0286ed4a5f, type: 2}
   - first:
       type: UnityEngine:Material
       assembly: UnityEngine.CoreModule
