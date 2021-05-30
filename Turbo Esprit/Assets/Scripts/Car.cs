@@ -91,6 +91,7 @@ namespace TurboEsprit
         public float engineRpm => engineAngularSpeed * PhysicsHelper.angularSpeedToRpm;
         public EngineState engineState { get; private set; }
         public new Rigidbody rigidbody { get; private set; }
+        public GearshiftPosition topGear => (GearshiftPosition)(specifications.forwardGearRatios.Length - 1);
 
         // Methods
 

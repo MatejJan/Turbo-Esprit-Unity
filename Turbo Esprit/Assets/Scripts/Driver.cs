@@ -96,7 +96,7 @@ namespace TurboEsprit
 
                 // Shift up when accelerating above specified limit.
                 float activeUpshiftEngineRpm = Mathf.Abs(targetSpeed - car.speed) < profile.closeSpeedDifference ? profile.upshiftEngineRpmWhenCloseToTarget : profile.upshiftEngineRpm;
-                if (targetSpeed > car.speed && car.engineRpm > activeUpshiftEngineRpm && car.gearshiftPosition < Car.GearshiftPosition.FifthGear)
+                if (targetSpeed > car.speed && car.engineRpm > activeUpshiftEngineRpm && car.gearshiftPosition < car.topGear)
                 {
                     targetGearshiftPosition = car.gearshiftPosition + 1;
                 }

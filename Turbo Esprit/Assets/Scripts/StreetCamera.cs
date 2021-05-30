@@ -4,9 +4,8 @@ using UnityEngine;
 
 namespace TurboEsprit
 {
-    public class MainCamera : MonoBehaviour
+    public class StreetCamera : GameCamera
     {
-        [SerializeField] private CarTracker trackedCar;
         [SerializeField] private float offsetFromCar;
 
         private void LateUpdate()

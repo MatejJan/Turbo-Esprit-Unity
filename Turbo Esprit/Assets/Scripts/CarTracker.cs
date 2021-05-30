@@ -152,6 +152,11 @@ namespace TurboEsprit
             dummyStreet.lanesCount = 2;
         }
 
+        private void Start()
+        {
+            UpdatePosition();
+        }
+
         private void Update()
         {
             UpdatePosition();
