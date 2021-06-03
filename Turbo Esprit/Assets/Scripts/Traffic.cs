@@ -6,7 +6,7 @@ namespace TurboEsprit
 {
     public class Traffic : MonoBehaviour
     {
-        public const float density = 0.02f; // cars per meter
+        public const float density = 0.003f; // cars per meter
         public const float safetyDistanceTime = 2;
         public static readonly float[] speedPerLaneMph = new float[] { 5, 20, 25, 30 };
 
@@ -311,9 +311,13 @@ namespace TurboEsprit
             Quaternion rotation = Quaternion.LookRotation(direction, Vector3.up);
 
             GameObject car = Instantiate(trafficCarPrefab, position, rotation, carTrafficRoot);
+
             CarTracker carTracker = car.GetComponent<CarTracker>();
             carTracker.city = city;
             trafficCarTrackers.Add(carTracker);
+
+            CarAudio carAudio = car.GetComponent<CarAudio>();
+            carAudio.gameMode = gameMode;
 
             float initialSpeed = speedPerLaneMph[lane] * PhysicsHelper.milesPerHourToMetersPerSecond;
             car.GetComponent<Car>().InitializeSpeed(initialSpeed);

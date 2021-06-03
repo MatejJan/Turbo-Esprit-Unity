@@ -130,7 +130,7 @@ GameObject:
   - component: {fileID: 2643378991910550436}
   - component: {fileID: 8059399767109083701}
   - component: {fileID: 6939053078212766836}
-  - component: {fileID: -392296204104465105}
+  - component: {fileID: 3438376520338885120}
   m_Layer: 10
   m_Name: Traffic Car
   m_TagString: Untagged
@@ -224,6 +224,8 @@ MonoBehaviour:
     min: 0.5
     max: 1
   ignitionAudioSource: {fileID: 6939053078212766836}
+  volumeFactor: 2
+  enabledDistance: 100
 --- !u!82 &2643378991910550436
 AudioSource:
   m_ObjectHideFlags: 0
@@ -280,7 +282,7 @@ AudioSource:
     m_Curve:
     - serializedVersion: 3
       time: 0
-      value: 0.8
+      value: 1
       inSlope: 0
       outSlope: 0
       tangentMode: 0
@@ -376,7 +378,7 @@ AudioSource:
     m_Curve:
     - serializedVersion: 3
       time: 0
-      value: 0.8
+      value: 1
       inSlope: 0
       outSlope: 0
       tangentMode: 0
@@ -472,7 +474,7 @@ AudioSource:
     m_Curve:
     - serializedVersion: 3
       time: 0
-      value: 0.8
+      value: 1
       inSlope: 0
       outSlope: 0
       tangentMode: 0
@@ -512,7 +514,7 @@ AudioSource:
     m_PreInfinity: 2
     m_PostInfinity: 2
     m_RotationOrder: 4
---- !u!114 &-392296204104465105
+--- !u!114 &3438376520338885120
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -521,10 +523,11 @@ MonoBehaviour:
   m_GameObject: {fileID: 8829416743059340641}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 0b06ad2cdd16d4de7860471b70602411, type: 3}
+  m_Script: {fileID: 11500000, guid: b97a3a6a740e34083913e9c152d3f973, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
   profile: {fileID: 11400000, guid: dc755893617dc48748879f8466f38893, type: 2}
+  controller: {fileID: 11400000, guid: 2070f314f0f7a4ef8b40866b8e3c1269, type: 2}
 --- !u!1001 &148336257891032291
 PrefabInstance:
   m_ObjectHideFlags: 0

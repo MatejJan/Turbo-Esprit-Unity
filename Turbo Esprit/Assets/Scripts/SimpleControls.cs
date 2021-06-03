@@ -5,7 +5,8 @@ using UnityEngine;
 
 namespace TurboEsprit
 {
-    public class PlayerDriver : Driver
+    [CreateAssetMenu(fileName = "SimpleControls", menuName = "Scriptable Objects/Simple Controls")]
+    public class SimpleControls : Driver.Controller
     {
         // How much can the target speed be changed per second.
         [SerializeField] private float speedChangeRateMph;
@@ -33,20 +34,19 @@ namespace TurboEsprit
         private float minSpeedChangeDifference => minSpeedChangeDifferenceMph * PhysicsHelper.milesPerHourToMetersPerSecond;
         private float roundingSpeedStep => roundingSpeedStepMph * PhysicsHelper.milesPerHourToMetersPerSecond;
 
-        protected override void Update()
+        public override void Act(Driver.Sensors sensors, Driver.Actuators actuators)
         {
-            UpdateTargetSpeed();
-            UpdateTargetDirection();
-            base.Update();
+            UpdateTargetSpeed(sensors, actuators);
+            UpdateTargetDirection(sensors, actuators);
         }
 
-        private void UpdateTargetSpeed()
+        private void UpdateTargetSpeed(Driver.Sensors sensors, Driver.Actuators actuators)
         {
             // Read player input.
             float speedChangeInput = Input.GetAxis("Speed Change");
 
             // When the car has stopped and we're not pressing anything, reset speed sign.
-            if (car.speed == 0 && speedChangeInput == 0)
+            if (sensors.car.speed == 0 && speedChangeInput == 0)
             {
                 speedSign = 0;
             }
@@ -57,7 +57,7 @@ namespace TurboEsprit
             if (speedChangeInput != 0)
             {
                 // If sign is not set when we're stopped, determine the direction we want to go in.
-                if (speedSign == 0 && car.speed == 0)
+                if (speedSign == 0 && sensors.car.speed == 0)
                 {
                     speedSign = Math.Sign(speedChangeInput);
                 }
@@ -65,10 +65,10 @@ namespace TurboEsprit
                 // We want to change speed so calculate new target speed.
                 float absoluteSpeedChangeInput = speedChangeInput * speedSign;
                 float absoluteSpeedChange = absoluteSpeedChangeInput * speedChangeRate * Time.deltaTime;
-                float newAbsoluteTargetSpeed = Mathf.Abs(targetSpeed) + absoluteSpeedChange;
+                float newAbsoluteTargetSpeed = Mathf.Abs(actuators.targetSpeed) + absoluteSpeedChange;
 
                 // Ensure minimum speed difference for faster reaction.
-                float absoluteCarSpeed = Mathf.Abs(car.speed);
+                float absoluteCarSpeed = Mathf.Abs(sensors.car.speed);
 
                 if (absoluteSpeedChangeInput < 0)
                 {
@@ -80,7 +80,7 @@ namespace TurboEsprit
                 }
 
                 // Set new target speed.
-                targetSpeed = newAbsoluteTargetSpeed * speedSign;
+                actuators.targetSpeed = newAbsoluteTargetSpeed * speedSign;
 
                 // Don't keep the speed until we stop changing it.
                 keepTargetSpeed = false;
@@ -88,12 +88,12 @@ namespace TurboEsprit
             else
             {
                 // Round the current car speed as the new target.
-                targetSpeed = Mathf.Round(car.speed / roundingSpeedStep) * roundingSpeedStep;
+                actuators.targetSpeed = Mathf.Round(sensors.car.speed / roundingSpeedStep) * roundingSpeedStep;
                 keepTargetSpeed = true;
             }
         }
 
-        private void UpdateTargetDirection()
+        private void UpdateTargetDirection(Driver.Sensors sensors, Driver.Actuators actuators)
         {
             // Read player input.
             float turningInput = Input.GetAxis("Turning");
@@ -103,8 +103,8 @@ namespace TurboEsprit
                 // If the input was just released, square to 90 degrees.
                 if (lastTurningInput != 0)
                 {
-                    CardinalDirection cardinalDirection = DirectionHelpers.GetCardinalDirectionForVector(transform.forward);
-                    targetDirection = DirectionHelpers.cardinalDirectionVectors[cardinalDirection];
+                    CardinalDirection cardinalDirection = DirectionHelpers.GetCardinalDirectionForVector(sensors.transform.forward);
+                    actuators.targetDirection = DirectionHelpers.cardinalDirectionVectors[cardinalDirection];
 
                     // Reset turning input time for next time.
                     turningInputNonZeroTime = 0;
@@ -116,25 +116,25 @@ namespace TurboEsprit
                 if (turningInput < 0 && lastTurningInput >= 0)
                 {
                     // We want to go left, but if our current target was to go right, just return to current lane.
-                    if (targetLane > carTracker.currentLane)
+                    if (actuators.targetLane > sensors.carTracker.currentLane)
                     {
-                        targetLane = carTracker.currentLane;
+                        actuators.targetLane = sensors.carTracker.currentLane;
                     }
                     else
                     {
-                        targetLane = Math.Max(carTracker.currentLane - 1, 0);
+                        actuators.targetLane = Math.Max(sensors.carTracker.currentLane - 1, 0);
                     }
                 }
                 else if (turningInput > 0 && lastTurningInput <= 0)
                 {
                     // We want to go right, but if our current target was to go left, just return to current lane.
-                    if (targetLane < carTracker.currentLane)
+                    if (actuators.targetLane < sensors.carTracker.currentLane)
                     {
-                        targetLane = carTracker.currentLane;
+                        actuators.targetLane = sensors.carTracker.currentLane;
                     }
                     else
                     {
-                        targetLane = Math.Min(carTracker.currentLane + 1, carTracker.representativeStreet.lanesCount + 1);
+                        actuators.targetLane = Math.Min(sensors.carTracker.currentLane + 1, sensors.carTracker.representativeStreet.lanesCount + 1);
                     }
                 }
 
@@ -143,9 +143,9 @@ namespace TurboEsprit
 
                 if (turningInputNonZeroTime > laneChangeOnlyDuration)
                 {
-                    float rotationAngleDegrees = turningInput * maxAngleChangeDifferenceDegrees * Mathf.Sign(car.speed);
+                    float rotationAngleDegrees = turningInput * maxAngleChangeDifferenceDegrees * Mathf.Sign(sensors.car.speed);
                     Quaternion rotation = Quaternion.Euler(0, rotationAngleDegrees, 0);
-                    targetDirection = rotation * transform.forward;
+                    actuators.targetDirection = rotation * sensors.transform.forward;
                 }
             }
 

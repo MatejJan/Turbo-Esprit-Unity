@@ -7,11 +7,13 @@ namespace TurboEsprit
     public class PracticeMode : GameMode
     {
         public override GameCamera currentCamera => cameras[currentCameraIndex];
+        public override GameObject currentCarGameObject => currentCarType.car;
 
         [SerializeField] private CarType[] carTypes;
         [SerializeField] private GameCamera[] cameras;
         [SerializeField] private Vector2Int startPosition;
         [SerializeField] private City city;
+        [SerializeField] private Driver playerDriver;
 
         private CarType currentCarType;
         private int currentCameraIndex;
@@ -34,7 +36,7 @@ namespace TurboEsprit
                 SwitchCarType(1);
             }
 
-            if (Input.GetKeyDown(KeyCode.C))
+            if (Input.GetKeyDown(KeyCode.C) || Input.GetKeyDown(KeyCode.V))
             {
                 SwitchCamera((currentCameraIndex + 1) % cameras.Length);
             }
@@ -42,6 +44,7 @@ namespace TurboEsprit
 
         private void SwitchCarType(int index)
         {
+            // Copy position and rotation from previous car if possible.
             Vector3 position = new Vector3 { x = startPosition.x, z = startPosition.y };
             Quaternion rotation = Quaternion.identity;
 
@@ -54,6 +57,7 @@ namespace TurboEsprit
                 currentCarType.dashboard.SetActive(false);
             }
 
+            // Setup new car.
             currentCarType = carTypes[index];
             currentCarType.car.GetComponent<CarTracker>().city = city;
             currentCarType.car.SetActive(true);
@@ -62,6 +66,12 @@ namespace TurboEsprit
             currentCarType.car.transform.position = position;
             currentCarType.car.transform.rotation = rotation;
 
+            currentCarType.car.GetComponent<CarAudio>().gameMode = this;
+
+            // Move driver to new car.
+            playerDriver.car = currentCarType.car.GetComponent<Car>();
+
+            // Make camera track the new car.
             currentCamera.trackedCar = currentCarType.car.GetComponent<CarTracker>();
         }
 

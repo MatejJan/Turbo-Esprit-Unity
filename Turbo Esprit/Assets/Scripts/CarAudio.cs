@@ -17,12 +17,37 @@ namespace TurboEsprit
         [SerializeField] private VolumeLimits engineClosedThrottleAudioSourceVolumeLimits;
 
         [SerializeField] private AudioSource ignitionAudioSource;
+
+        [SerializeField] private float volumeFactor = 1;
+
+        [SerializeField] private float enabledDistance;
+
         private Car.EngineState previousEngineState = Car.EngineState.Off;
+        private bool audioEnabled;
+        private float playerCarDistance;
+
+        public GameMode gameMode { get; set; }
 
         private void Update()
         {
-            UpdateEngineSound();
-            HandleEngineState();
+            UpdateAudioEnabled();
+
+            if (audioEnabled)
+            {
+                UpdateEngineSound();
+                UpdateVolume();
+                HandleEngineState();
+            }
+        }
+
+        private void UpdateAudioEnabled()
+        {
+            playerCarDistance = (transform.position - gameMode.currentCarGameObject.transform.position).magnitude;
+            audioEnabled = playerCarDistance < enabledDistance;
+
+            engineOpenedThrottleAudioSource.enabled = audioEnabled;
+            engineClosedThrottleAudioSource.enabled = audioEnabled;
+            ignitionAudioSource.enabled = audioEnabled;
         }
 
         private void UpdateEngineSound()
@@ -37,6 +62,16 @@ namespace TurboEsprit
 
             engineOpenedThrottleAudioSource.volume = Mathf.Lerp(openedLimits.min, openedLimits.max, car.acceleratorPedalPosition);
             engineClosedThrottleAudioSource.volume = Mathf.Lerp(closedLimits.min, closedLimits.max, 1 - car.acceleratorPedalPosition);
+        }
+
+        private void UpdateVolume()
+        {
+            // Create a very sharp fade out curve.
+            float fadeFactor = 1 - Mathf.Pow(playerCarDistance / enabledDistance, 10);
+
+            engineOpenedThrottleAudioSource.volume *= fadeFactor * volumeFactor;
+            engineClosedThrottleAudioSource.volume *= fadeFactor * volumeFactor;
+            ignitionAudioSource.volume = fadeFactor * volumeFactor;
         }
 
         private void HandleEngineState()

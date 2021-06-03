@@ -8,19 +8,20 @@ namespace TurboEsprit
     public class Driver : MonoBehaviour
     {
         [SerializeField] private DriverProfile profile;
+        [SerializeField] private Controller controller;
 
-        protected Car car;
-        protected CarTracker carTracker;
+        private DrivingState drivingState;
+        private TurningState turningState;
 
-        private DrivingState drivingState = DrivingState.Parked;
-        private TurningState turningState = TurningState.Turning;
-        private float idlingTime = 0;
-        private float shiftingTime = 0;
-        private float previousSpeed = 0;
-
+        private float idlingTime;
+        private float shiftingTime;
+        private float previousSpeed;
         private Car.GearshiftPosition targetGearshiftPosition;
 
-        public enum DrivingState
+        private Sensors sensors = new Sensors();
+        private Actuators actuators = new Actuators();
+
+        private enum DrivingState
         {
             Parked,
             Starting,
@@ -31,37 +32,57 @@ namespace TurboEsprit
             Stopping
         }
 
-        public enum TurningState
+        private enum TurningState
         {
             DrivingStraight,
             Turning
         }
 
-        /// <summary>
-        /// What speed should the driver be driving at.
-        /// </summary>
-        protected float targetSpeed { get; set; }
+        public Car car
+        {
+            get => sensors.car;
+            set
+            {
+                sensors.car = value;
+                sensors.carTracker = value?.GetComponent<CarTracker>();
+                sensors.transform = value?.gameObject.transform;
 
-        /// <summary>
-        /// In which lane should the driver be.
-        /// </summary>
-        protected int targetLane { get; set; }
+                if (sensors.transform != null) actuators.targetDirection = sensors.transform.forward;
 
-        /// <summary>
-        /// In which direction in world space should the driver orient the car.
-        /// </summary>
-        protected Vector3 targetDirection { get; set; }
+                Initialize();
+            }
+        }
+
+        private CarTracker carTracker => sensors.carTracker;
+        private new Transform transform => sensors.transform;
+
+        private float targetSpeed => actuators.targetSpeed;
+        private int targetLane => actuators.targetLane;
+        private Vector3 targetDirection => actuators.targetDirection;
 
         private void Awake()
         {
-            car = GetComponent<Car>();
-            carTracker = GetComponent<CarTracker>();
-            targetDirection = transform.forward;
+            // try to initialize sensors from the current game object.
+            car = gameObject.GetComponent<Car>();
         }
 
-        protected virtual void Update()
+        private void Initialize()
+        {
+            drivingState = DrivingState.Parked;
+            turningState = TurningState.Turning;
+
+            idlingTime = 0;
+            shiftingTime = 0;
+            previousSpeed = 0;
+
+            targetGearshiftPosition = Car.GearshiftPosition.Neutral;
+        }
+
+        private void Update()
         {
             DrawDebugTarget();
+
+            controller.Act(sensors, actuators);
 
             UpdateDesiredGearshiftPosition();
             UpdateDrivingState();
@@ -185,7 +206,7 @@ namespace TurboEsprit
                         turningState = TurningState.DrivingStraight;
 
                         // Align to the closest car lane (not sidewalk).
-                        targetLane = Mathf.Clamp(1, carTracker.currentLane, carTracker.representativeStreet.lanesCount);
+                        actuators.targetLane = Mathf.Clamp(1, carTracker.currentLane, carTracker.representativeStreet.lanesCount);
                     }
                     break;
             }
@@ -478,6 +499,36 @@ namespace TurboEsprit
             Vector3 directionInWorldSpace = transform.localToWorldMatrix * directionInCarSpace;
 
             Debug.DrawRay(transform.position + Vector3.up, directionInWorldSpace * 10, Color.cyan);
+        }
+
+        public class Sensors
+        {
+            public Car car { get; set; }
+            public CarTracker carTracker { get; set; }
+            public Transform transform { get; set; }
+        }
+
+        public class Actuators
+        {
+            /// <summary>
+            /// What speed should the driver be driving at.
+            /// </summary>
+            public float targetSpeed { get; set; }
+
+            /// <summary>
+            /// In which lane should the driver be.
+            /// </summary>
+            public int targetLane { get; set; }
+
+            /// <summary>
+            /// In which direction in world space should the driver orient the car.
+            /// </summary>
+            public Vector3 targetDirection { get; set; }
+        }
+
+        public abstract class Controller : ScriptableObject
+        {
+            public abstract void Act(Sensors sensors, Actuators actuators);
         }
     }
 }

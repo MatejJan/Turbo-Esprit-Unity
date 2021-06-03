@@ -7,6 +7,7 @@ namespace TurboEsprit
     public class StreetCamera : GameCamera
     {
         [SerializeField] private float offsetFromCar;
+        [SerializeField] private Transform audioListenerTransform;
 
         private void LateUpdate()
         {
@@ -54,7 +55,11 @@ namespace TurboEsprit
                 }
             }
 
+            // Camera follows behind the car.
             transform.position += transform.forward * offsetFromCar;
+
+            // The audio listener should be in-line with the car.
+            audioListenerTransform.localPosition = Vector3.forward * -offsetFromCar;
         }
 
         private void OnDrawGizmos()

@@ -5,17 +5,17 @@ using UnityEngine;
 
 namespace TurboEsprit
 {
-    public class TrafficDriver : Driver
+    [CreateAssetMenu(fileName = "TrafficDriver", menuName = "Scriptable Objects/Traffic Driver")]
+    public class TrafficDriver : Driver.Controller
     {
-        protected override void Update()
+        public override void Act(Driver.Sensors sensors, Driver.Actuators actuators)
         {
-            UpdateTargetSpeed();
-            base.Update();
+            UpdateTargetSpeed(sensors, actuators);
         }
 
-        private void UpdateTargetSpeed()
+        private void UpdateTargetSpeed(Driver.Sensors sensors, Driver.Actuators actuators)
         {
-            targetSpeed = Traffic.speedPerLaneMph[Mathf.Clamp(carTracker.currentLane, 0, 3)] * PhysicsHelper.milesPerHourToMetersPerSecond;
+            actuators.targetSpeed = Traffic.speedPerLaneMph[Mathf.Clamp(sensors.carTracker.currentLane, 0, 3)] * PhysicsHelper.milesPerHourToMetersPerSecond;
         }
     }
 }
