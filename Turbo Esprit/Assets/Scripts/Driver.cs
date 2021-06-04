@@ -8,7 +8,8 @@ namespace TurboEsprit
     public class Driver : MonoBehaviour
     {
         [SerializeField] private DriverProfile profile;
-        [SerializeField] private Controller controller;
+        [SerializeField] private Transform debugTargetTransform;
+        [SerializeField] private Transform debugTargetCurrentDirectionTransform;
 
         private DrivingState drivingState;
         private TurningState turningState;
@@ -37,6 +38,9 @@ namespace TurboEsprit
             DrivingStraight,
             Turning
         }
+
+        [field: SerializeField]
+        public Controller controller { get; set; }
 
         public Car car
         {
@@ -438,7 +442,14 @@ namespace TurboEsprit
 
             // Calculate target steering wheel position.
             float targetSteeringWheelPosition = car.GetSteeringWheelPositionForDirection(targetWheelsDirectionInCarSpace);
-            float maxSteeringWheelPosition = Mathf.Pow(0.5f, car.speed / profile.steeringWheelLimitHalvingSpeed);
+
+            // When driving straight, limit maximum steering wheel position.
+            float maxSteeringWheelPosition = 1;
+            if (turningState == TurningState.DrivingStraight)
+            {
+                maxSteeringWheelPosition = Mathf.Pow(0.5f, car.speed / profile.steeringWheelLimitHalvingSpeed);
+            }
+
             float possibleTargetSteeringWheelPosition = Mathf.Clamp(targetSteeringWheelPosition, -maxSteeringWheelPosition, maxSteeringWheelPosition);
 
             car.steeringWheelPosition = Mathf.MoveTowards(car.steeringWheelPosition, possibleTargetSteeringWheelPosition, profile.steeringWheelSpeed * Time.deltaTime);
@@ -467,7 +478,7 @@ namespace TurboEsprit
         private void DrawDebugTarget()
         {
             float targetSidewaysPosition = carTracker.GetCenterOfLaneSidewaysPosition(targetLane);
-            Vector3 origin = carTracker.carWorldPosition + Vector3.up;
+            Vector3 origin = carTracker.carWorldPosition + Vector3.up * 0.1f;
 
             float streetHalfWidth = carTracker.representativeStreet.width / 2;
             Vector2Int intersectionWorldPosition = carTracker.representativeStreet.startIntersection.position;
@@ -491,7 +502,13 @@ namespace TurboEsprit
                     break;
             }
 
-            Debug.DrawRay(origin, targetDirection * 100, Color.green);
+            Debug.DrawRay(origin, targetDirection * 20, Color.green);
+
+            if (debugTargetTransform != null)
+            {
+                debugTargetTransform.transform.position = origin;
+                debugTargetTransform.transform.rotation = Quaternion.LookRotation(targetDirection);
+            }
         }
 
         private void DrawDebugTargetCurrentDirection(Vector3 directionInCarSpace)
@@ -499,6 +516,12 @@ namespace TurboEsprit
             Vector3 directionInWorldSpace = transform.localToWorldMatrix * directionInCarSpace;
 
             Debug.DrawRay(transform.position + Vector3.up, directionInWorldSpace * 10, Color.cyan);
+
+            if (debugTargetCurrentDirectionTransform != null)
+            {
+                debugTargetCurrentDirectionTransform.transform.position = transform.position + Vector3.up * 0.1f;
+                debugTargetCurrentDirectionTransform.transform.rotation = Quaternion.LookRotation(directionInWorldSpace);
+            }
         }
 
         public class Sensors

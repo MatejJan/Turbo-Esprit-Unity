@@ -11,7 +11,7 @@ GameObject:
   - component: {fileID: 4243403960811241989}
   - component: {fileID: 1649073058987213233}
   m_Layer: 0
-  m_Name: Wheel Collider
+  m_Name: Goodyear Wheel Collider
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -56,8 +56,8 @@ WheelCollider:
     m_Stiffness: 1
   m_SidewaysFriction:
     m_ExtremumSlip: 0.2
-    m_ExtremumValue: 1
-    m_AsymptoteSlip: 0.5
-    m_AsymptoteValue: 0.75
+    m_ExtremumValue: 1.5
+    m_AsymptoteSlip: 10
+    m_AsymptoteValue: 1
     m_Stiffness: 1
   m_Enabled: 1

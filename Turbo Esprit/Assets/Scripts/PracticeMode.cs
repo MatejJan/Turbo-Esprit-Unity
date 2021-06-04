@@ -11,17 +11,21 @@ namespace TurboEsprit
 
         [SerializeField] private CarType[] carTypes;
         [SerializeField] private GameCamera[] cameras;
+        [SerializeField] private Driver.Controller[] controllers;
         [SerializeField] private Vector2Int startPosition;
         [SerializeField] private City city;
         [SerializeField] private Driver playerDriver;
+        [SerializeField] private GameObject[] debugGameObjects;
 
         private CarType currentCarType;
         private int currentCameraIndex;
+        private int currentControllerIndex;
 
         private void Start()
         {
             SwitchCarType(0);
             SwitchCamera(0);
+            SwitchController(0);
         }
 
         private void Update()
@@ -39,6 +43,25 @@ namespace TurboEsprit
             if (Input.GetKeyDown(KeyCode.C) || Input.GetKeyDown(KeyCode.V))
             {
                 SwitchCamera((currentCameraIndex + 1) % cameras.Length);
+            }
+
+            if (Input.GetKeyDown(KeyCode.R))
+            {
+                Vector3 rotationAngles = currentCarGameObject.transform.localRotation.eulerAngles;
+                currentCarGameObject.transform.localRotation = Quaternion.Euler(rotationAngles.x, rotationAngles.y, 0);
+            }
+
+            if (Input.GetKeyDown(KeyCode.I))
+            {
+                foreach (GameObject gameObject in debugGameObjects)
+                {
+                    gameObject.SetActive(!gameObject.activeSelf);
+                }
+            }
+
+            if (Input.GetKeyDown(KeyCode.Tab))
+            {
+                SwitchController((currentControllerIndex + 1) % controllers.Length);
             }
         }
 
@@ -82,6 +105,12 @@ namespace TurboEsprit
             currentCameraIndex = index;
             currentCamera.gameObject.SetActive(true);
             currentCamera.trackedCar = currentCarType.car.GetComponent<CarTracker>();
+        }
+
+        private void SwitchController(int index)
+        {
+            currentControllerIndex = index;
+            playerDriver.controller = controllers[currentControllerIndex];
         }
     }
 }

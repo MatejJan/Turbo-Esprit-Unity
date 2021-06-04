@@ -33,7 +33,7 @@ MonoBehaviour:
   engineToWheelsEqualizationFactor: 5
   engineBrakingCoefficient: 0.4
   maxSteeringAngleDegrees: 30
-  maxSteeringAngleDeltaRateDegrees: 90
+  maxSteeringAngleDeltaRateDegrees: 150
   maxBrakingTorque: 1000
   starterTorque: 50
   starterStopRpm: 1200

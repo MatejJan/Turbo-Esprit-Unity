@@ -527,7 +527,9 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   profile: {fileID: 11400000, guid: dc755893617dc48748879f8466f38893, type: 2}
-  controller: {fileID: 11400000, guid: 2070f314f0f7a4ef8b40866b8e3c1269, type: 2}
+  debugTargetTransform: {fileID: 0}
+  debugTargetCurrentDirectionTransform: {fileID: 0}
+  <controller>k__BackingField: {fileID: 11400000, guid: 2070f314f0f7a4ef8b40866b8e3c1269, type: 2}
 --- !u!1001 &148336257891032291
 PrefabInstance:
   m_ObjectHideFlags: 0
