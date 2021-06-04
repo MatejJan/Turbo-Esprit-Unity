@@ -3110,9 +3110,9 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   profile: {fileID: 11400000, guid: 9a3649a128f254eb9b8922ab18f09f92, type: 2}
-  controller: {fileID: 11400000, guid: 027249867bfae446fa998112729940d4, type: 2}
   debugTargetTransform: {fileID: 802123361}
   debugTargetCurrentDirectionTransform: {fileID: 723790656}
+  <controller>k__BackingField: {fileID: 0}
 --- !u!4 &1316571810
 Transform:
   m_ObjectHideFlags: 0
@@ -4583,6 +4583,10 @@ MonoBehaviour:
   - {fileID: 603199258}
   - {fileID: 702614337}
   - {fileID: 131354102}
+  controllers:
+  - {fileID: 11400000, guid: 027249867bfae446fa998112729940d4, type: 2}
+  - {fileID: 11400000, guid: fc0399de1412e4e76aedfc50b0325b19, type: 2}
+  - {fileID: 11400000, guid: 2070f314f0f7a4ef8b40866b8e3c1269, type: 2}
   startPosition: {x: 1790, y: 5}
   city: {fileID: 1464943639}
   playerDriver: {fileID: 1316571809}
