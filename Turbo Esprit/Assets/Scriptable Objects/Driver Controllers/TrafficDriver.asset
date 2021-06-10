@@ -12,3 +12,10 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 0b06ad2cdd16d4de7860471b70602411, type: 3}
   m_Name: TrafficDriver
   m_EditorClassIdentifier: 
+  safeDistanceTime: 2
+  minSafeDistance: 2
+  speedMatchingSafeDistanceFactor: 2
+  minimumRecognizableObstacleSpeed: 1
+  minimumMovingAwayRelativeSpeed: 1
+  frontRaycastOriginOffset: {x: 0, y: 0.5, z: 2.5}
+  maxRaycastDistance: 100

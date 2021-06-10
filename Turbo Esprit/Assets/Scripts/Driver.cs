@@ -66,8 +66,11 @@ namespace TurboEsprit
 
         private void Awake()
         {
-            // try to initialize sensors from the current game object.
+            // Try to initialize sensors from the current game object.
             car = gameObject.GetComponent<Car>();
+
+            // Clone the initial controller, in case it requires its own instance.
+            if (controller != null) controller = Instantiate(controller);
         }
 
         private void Initialize()
