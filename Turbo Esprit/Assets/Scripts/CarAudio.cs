@@ -18,6 +18,10 @@ namespace TurboEsprit
 
         [SerializeField] private AudioSource ignitionAudioSource;
 
+        [SerializeField] private AudioSource turnSignalAudioSource;
+        [SerializeField] private AudioClip turnSignalStart;
+        [SerializeField] private AudioClip turnSignalEnd;
+
         [SerializeField] private float volumeFactor = 1;
 
         [SerializeField] private float enabledDistance;
@@ -25,6 +29,7 @@ namespace TurboEsprit
         private Car.EngineState previousEngineState = Car.EngineState.Off;
         private bool audioEnabled;
         private float playerCarDistance;
+        private Car.TurnSignalsPosition previousTurnSignalsPosition = Car.TurnSignalsPosition.Off;
 
         public GameMode gameMode { get; set; }
 
@@ -37,6 +42,7 @@ namespace TurboEsprit
                 UpdateEngineSound();
                 UpdateVolume();
                 HandleEngineState();
+                HandleTurnSignalsPosition();
             }
         }
 
@@ -83,6 +89,40 @@ namespace TurboEsprit
             }
 
             previousEngineState = car.engineState;
+        }
+
+        private void HandleTurnSignalsPosition()
+        {
+            // Nothing to do for cars that don't have a turning signal sound.
+            if (turnSignalAudioSource == null) return;
+
+            if (car.turnSignalsPosition != Car.TurnSignalsPosition.Off)
+            {
+                if (car.turnSignalsPosition != previousTurnSignalsPosition)
+                {
+                    // The signals have just been changed. Play the start sound.
+                    turnSignalAudioSource.PlayOneShot(turnSignalStart);
+                }
+
+                if (previousTurnSignalsPosition == Car.TurnSignalsPosition.Off)
+                {
+                    // Start the loop after the start sound has finished.
+                    turnSignalAudioSource.PlayDelayed(turnSignalStart.length);
+                }
+            }
+            else
+            {
+                if (previousTurnSignalsPosition != Car.TurnSignalsPosition.Off)
+                {
+                    // End the loop.
+                    turnSignalAudioSource.Stop();
+
+                    // The signals have just been turned off. Play the end sound.
+                    turnSignalAudioSource.PlayOneShot(turnSignalEnd);
+                }
+            }
+
+            previousTurnSignalsPosition = car.turnSignalsPosition;
         }
     }
 

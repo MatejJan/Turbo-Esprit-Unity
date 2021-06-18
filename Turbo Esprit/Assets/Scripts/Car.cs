@@ -10,6 +10,7 @@ namespace TurboEsprit
 
         private const float averageDriveWheelsRpmSmoothingDuration = 1;
         private const float minWheelRpmThreshold = 1;
+        private const float turnSignalsFrequency = 1.5f;
 
         // Fields
 
@@ -20,6 +21,11 @@ namespace TurboEsprit
         [SerializeField] private WheelCollider wheelColliderBackLeft;
         [SerializeField] private WheelCollider wheelColliderBackRight;
 
+        [SerializeField] private GameObject turnSignalFrontLeft;
+        [SerializeField] private GameObject turnSignalFrontRight;
+        [SerializeField] private GameObject turnSignalBackLeft;
+        [SerializeField] private GameObject turnSignalBackRight;
+
         private float engineAngularSpeed = 0;
         private float driveAxlesAngularSpeed = 0;
 
@@ -29,6 +35,10 @@ namespace TurboEsprit
 
         private int drivenWheelsCount;
         private IgnitionSwitchPosition _ignitionSwitchPosition;
+
+        private float turnSignalsTimer;
+        private bool turnSignalsLit;
+        private TurnSignalsPosition _turnSignalsPosition;
 
         // Enums
 
@@ -58,6 +68,13 @@ namespace TurboEsprit
             On
         }
 
+        public enum TurnSignalsPosition
+        {
+            Off,
+            Left,
+            Right
+        }
+
         // Properties
 
         public float acceleratorPedalPosition { get; set; }
@@ -84,6 +101,29 @@ namespace TurboEsprit
                 {
                     engineState = EngineState.Off;
                 }
+            }
+        }
+
+        public TurnSignalsPosition turnSignalsPosition
+        {
+            get => _turnSignalsPosition;
+            set
+            {
+                if (_turnSignalsPosition == value) return;
+
+                _turnSignalsPosition = value;
+
+                if (_turnSignalsPosition == TurnSignalsPosition.Off)
+                {
+                    turnSignalsLit = false;
+                }
+                else
+                {
+                    turnSignalsLit = true;
+                    turnSignalsTimer = 0;
+                }
+
+                UpdateTurnSignalsEnabled();
             }
         }
 
@@ -146,7 +186,12 @@ namespace TurboEsprit
 
             int averageDriveWheelsRpmHistoryLength = Mathf.CeilToInt(averageDriveWheelsRpmSmoothingDuration / Time.fixedDeltaTime);
             averageDriveWheelsRpmHistory = new float[averageDriveWheelsRpmHistoryLength];
+
+            turnSignalsLit = false;
+            UpdateTurnSignalsEnabled();
         }
+
+        // FIXED UPDATE METHODS
 
         private void FixedUpdate()
         {
@@ -338,7 +383,61 @@ namespace TurboEsprit
             // Add drag force.
             Vector3 dragForce = -rigidbody.velocity.normalized * specifications.dragForceCoefficient * specifications.frontalArea * aerodynamicForceFactor;
             rigidbody.AddForce(dragForce);
+        }        
+
+        private float GetEngineBrakingTorque(float engineAngularSpeed, float airFuelIntake)
+        {
+            float maxEngineBrakingTorque = -engineAngularSpeed * specifications.engineBrakingCoefficient;
+            return maxEngineBrakingTorque * (1 - airFuelIntake);
         }
+
+        // UPDATE METHODS
+
+        private void Update()
+        {
+            UpdateTurnSignals();
+        }
+
+        private void UpdateTurnSignals()
+        {
+            // Nothing to do if the turn signals are off.
+            if (turnSignalsPosition == TurnSignalsPosition.Off) return;
+
+            // Increase the timer and see if we're halfway through the frequency.
+            turnSignalsTimer += Time.deltaTime;
+            float duration = 0.5f / turnSignalsFrequency;
+
+            if (turnSignalsTimer > duration)
+            {
+                turnSignalsTimer -= duration;
+
+                // Switch the signals.
+                turnSignalsLit = !turnSignalsLit;
+                UpdateTurnSignalsEnabled();
+            }
+        }
+
+        private void UpdateTurnSignalsEnabled()
+        {
+            // Make sure turn signals are wired.
+            if (turnSignalFrontLeft == null) return;
+
+            bool leftLit = false;
+            bool rightLit = false;
+
+            if (turnSignalsLit)
+            {
+                if (turnSignalsPosition == TurnSignalsPosition.Left) leftLit = true;
+                if (turnSignalsPosition == TurnSignalsPosition.Right) rightLit = true;
+            }
+
+            turnSignalFrontLeft.SetActive(leftLit);
+            turnSignalBackLeft.SetActive(leftLit);
+            turnSignalFrontRight.SetActive(rightLit);
+            turnSignalBackRight.SetActive(rightLit);
+        }
+
+        // HELPERS
 
         private float GetTotalDriveRatio(GearshiftPosition gearshiftPosition)
         {
@@ -390,12 +489,6 @@ namespace TurboEsprit
             }
 
             return 0;
-        }
-
-        private float GetEngineBrakingTorque(float engineAngularSpeed, float airFuelIntake)
-        {
-            float maxEngineBrakingTorque = -engineAngularSpeed * specifications.engineBrakingCoefficient;
-            return maxEngineBrakingTorque * (1 - airFuelIntake);
         }
     }
 }

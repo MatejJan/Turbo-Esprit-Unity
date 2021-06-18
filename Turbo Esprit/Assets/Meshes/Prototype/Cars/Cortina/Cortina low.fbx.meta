@@ -35,7 +35,7 @@ ModelImporter:
       name: Window
     second: {fileID: 2100000, guid: 466510f45835e487bb41405897dcd1ef, type: 2}
   materials:
-    materialImportMode: 2
+    materialImportMode: 0
     materialName: 0
     materialSearch: 1
     materialLocation: 1

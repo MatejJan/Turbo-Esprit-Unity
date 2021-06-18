@@ -10,7 +10,7 @@ ModelImporter:
       name: Wheel
     second: {fileID: 2100000, guid: 5a9f8d57f6c554203ad0f5e651432cc7, type: 2}
   materials:
-    materialImportMode: 2
+    materialImportMode: 0
     materialName: 0
     materialSearch: 1
     materialLocation: 1
