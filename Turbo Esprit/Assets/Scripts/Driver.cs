@@ -100,6 +100,7 @@ namespace TurboEsprit
             UpdateBrakePedalPosition();
             UpdateGearshiftPosition();
             UpdateSteeringWheelPosition();
+            UpdateTurningSignalsPosition();
         }
 
         private void UpdateDesiredGearshiftPosition()
@@ -458,6 +459,44 @@ namespace TurboEsprit
             car.steeringWheelPosition = Mathf.MoveTowards(car.steeringWheelPosition, possibleTargetSteeringWheelPosition, profile.steeringWheelSpeed * Time.deltaTime);
 
             DrawDebugTargetCurrentDirection(targetWheelsDirectionInCarSpace);
+        }
+
+        private void UpdateTurningSignalsPosition()
+        {
+            switch (turningState)
+            {
+                case TurningState.DrivingStraight:
+                    // We need to use turning signals if we're not in the desired lane.
+                    if (targetLane < carTracker.currentLane)
+                    {
+                        car.turnSignalsPosition = Car.TurnSignalsPosition.Left;
+                    }
+                    else if (targetLane > carTracker.currentLane)
+                    {
+                        car.turnSignalsPosition = Car.TurnSignalsPosition.Right;
+                    }
+                    else
+                    {
+                        car.turnSignalsPosition = Car.TurnSignalsPosition.Off;
+                    }
+
+                    break;
+
+                case TurningState.Turning:
+                    // We always use turning signals while turning, based on direction.
+                    float angleToTarget = Vector3.SignedAngle(car.transform.forward, targetDirection, Vector3.up);
+
+                    if (angleToTarget < 0)
+                    {
+                        car.turnSignalsPosition = Car.TurnSignalsPosition.Left;
+                    }
+                    else
+                    {
+                        car.turnSignalsPosition = Car.TurnSignalsPosition.Right;
+                    }
+
+                    break;
+            }
         }
 
         private float GetCarAngleDegrees(bool signed = true)

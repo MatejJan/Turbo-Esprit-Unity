@@ -21,6 +21,8 @@ namespace TurboEsprit
         [SerializeField] private AudioSource turnSignalAudioSource;
         [SerializeField] private AudioClip turnSignalStart;
         [SerializeField] private AudioClip turnSignalEnd;
+        [SerializeField] private float turnSignalsClickLimitAmount = 2;
+        [SerializeField] private float turnSignalsClickLimitDuration = 5;
 
         [SerializeField] private float volumeFactor = 1;
 
@@ -30,6 +32,7 @@ namespace TurboEsprit
         private bool audioEnabled;
         private float playerCarDistance;
         private Car.TurnSignalsPosition previousTurnSignalsPosition = Car.TurnSignalsPosition.Off;
+        private float turnSignalsClickAmount = 0;
 
         public GameMode gameMode { get; set; }
 
@@ -44,6 +47,8 @@ namespace TurboEsprit
                 HandleEngineState();
                 HandleTurnSignalsPosition();
             }
+
+            UpdateTurnSignalsClickAmount();
         }
 
         private void UpdateAudioEnabled()
@@ -101,7 +106,7 @@ namespace TurboEsprit
                 if (car.turnSignalsPosition != previousTurnSignalsPosition)
                 {
                     // The signals have just been changed. Play the start sound.
-                    turnSignalAudioSource.PlayOneShot(turnSignalStart);
+                    PlayTurnSignalClick(turnSignalStart);
                 }
 
                 if (previousTurnSignalsPosition == Car.TurnSignalsPosition.Off)
@@ -118,11 +123,25 @@ namespace TurboEsprit
                     turnSignalAudioSource.Stop();
 
                     // The signals have just been turned off. Play the end sound.
-                    turnSignalAudioSource.PlayOneShot(turnSignalEnd);
+                    PlayTurnSignalClick(turnSignalEnd);
                 }
             }
 
             previousTurnSignalsPosition = car.turnSignalsPosition;
+        }
+
+        private void PlayTurnSignalClick(AudioClip clip)
+        {
+            if (turnSignalsClickAmount <= turnSignalsClickLimitAmount - 1)
+            {
+                turnSignalAudioSource.PlayOneShot(clip);
+                turnSignalsClickAmount++;
+            }
+        }
+
+        private void UpdateTurnSignalsClickAmount()
+        {
+            turnSignalsClickAmount = Mathf.Max(0, turnSignalsClickAmount - Time.deltaTime / turnSignalsClickLimitDuration);
         }
     }
 
