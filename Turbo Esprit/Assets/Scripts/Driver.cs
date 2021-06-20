@@ -22,6 +22,14 @@ namespace TurboEsprit
         private Sensors sensors = new Sensors();
         private Actuators actuators = new Actuators();
 
+        public enum TurningIntent
+        {
+            Straight,
+            Left,
+            Right,
+            UTurn
+        }
+
         private enum DrivingState
         {
             Parked,
@@ -57,6 +65,8 @@ namespace TurboEsprit
             }
         }
 
+        public TurningIntent turningIntent => actuators.turningIntent;
+
         private CarTracker carTracker => sensors.carTracker;
         private new Transform transform => sensors.transform;
 
@@ -71,6 +81,8 @@ namespace TurboEsprit
 
             // Clone the initial controller, in case it requires its own instance.
             if (controller != null) controller = Instantiate(controller);
+
+            sensors.driverProfile = profile;
         }
 
         private void Initialize()
@@ -115,6 +127,11 @@ namespace TurboEsprit
                 // Only reverse gear can make us go backwards.
                 targetGearshiftPosition = Car.GearshiftPosition.Reverse;
             }
+            else if (targetSpeed > 0 && targetGearshiftPosition == Car.GearshiftPosition.Reverse)
+            {
+                // When target speed reverses, we should stop.
+                targetGearshiftPosition = Car.GearshiftPosition.FirstGear;
+            }
             else if (drivingState != DrivingState.Shifting && drivingState != DrivingState.MovingOff)
             {
                 // We have to be at least in first gear.
@@ -140,6 +157,8 @@ namespace TurboEsprit
 
         private void UpdateDrivingState()
         {
+            bool speedIsOppositeOfTarget = Math.Abs(Math.Sign(targetSpeed) - Math.Sign(car.speed)) == 2;
+
             switch (drivingState)
             {
                 case DrivingState.Parked:
@@ -175,6 +194,9 @@ namespace TurboEsprit
 
                     // If target speed becomes zero, we should stop.
                     if (targetSpeed == 0) drivingState = DrivingState.Stopping;
+
+                    // If speed is opposite of target, we need to stop first.
+                    if (speedIsOppositeOfTarget) drivingState = DrivingState.Stopping;
                     break;
 
                 case DrivingState.Driving:
@@ -187,7 +209,7 @@ namespace TurboEsprit
 
                 case DrivingState.Stopping:
                     // When stopping, if target speed changes, shift back into gear.
-                    if (targetSpeed != 0) drivingState = DrivingState.Shifting;
+                    if (targetSpeed != 0 && !speedIsOppositeOfTarget) drivingState = DrivingState.Shifting;
 
                     // When our speed stops, we go to idling.
                     if (car.speed == 0) drivingState = DrivingState.Idling;
@@ -463,6 +485,18 @@ namespace TurboEsprit
 
         private void UpdateTurningSignalsPosition()
         {
+            // If a turning intent is specified, use turning signals.
+            switch (turningIntent)
+            {
+                case TurningIntent.Left:
+                    car.turnSignalsPosition = Car.TurnSignalsPosition.Left;
+                    return;
+
+                case TurningIntent.Right:
+                    car.turnSignalsPosition = Car.TurnSignalsPosition.Right;
+                    return;
+            }
+
             switch (turningState)
             {
                 case TurningState.DrivingStraight:
@@ -519,31 +553,7 @@ namespace TurboEsprit
 
         private void DrawDebugTarget()
         {
-            float targetSidewaysPosition = carTracker.GetCenterOfLaneSidewaysPosition(targetLane);
-            Vector3 origin = carTracker.carWorldPosition + Vector3.up * 0.1f;
-
-            float streetHalfWidth = carTracker.representativeStreet.width / 2;
-            Vector2Int intersectionWorldPosition = carTracker.representativeStreet.startIntersection.position;
-
-            switch (carTracker.streetCardinalDirection)
-            {
-                case CardinalDirection.North:
-                    origin.x = intersectionWorldPosition.x - streetHalfWidth + targetSidewaysPosition;
-                    break;
-
-                case CardinalDirection.South:
-                    origin.x = intersectionWorldPosition.x + streetHalfWidth - targetSidewaysPosition;
-                    break;
-
-                case CardinalDirection.West:
-                    origin.z = intersectionWorldPosition.y - streetHalfWidth + targetSidewaysPosition;
-                    break;
-
-                case CardinalDirection.East:
-                    origin.z = intersectionWorldPosition.y + streetHalfWidth - targetSidewaysPosition;
-                    break;
-            }
-
+            Vector3 origin = carTracker.GetCenterOfLanePosition(targetLane) + Vector3.up * 0.1f;
             Debug.DrawRay(origin, targetDirection * 20, Color.green);
 
             if (debugTargetTransform != null)
@@ -571,6 +581,7 @@ namespace TurboEsprit
             public Car car { get; set; }
             public CarTracker carTracker { get; set; }
             public Transform transform { get; set; }
+            public DriverProfile driverProfile { get; set; }
         }
 
         public class Actuators
@@ -589,6 +600,11 @@ namespace TurboEsprit
             /// In which direction in world space should the driver orient the car.
             /// </summary>
             public Vector3 targetDirection { get; set; }
+
+            /// <summary>
+            /// Indicate what turn the driver is intending to perform in the future.
+            /// </summary>
+            public TurningIntent turningIntent { get; set; }
         }
 
         public abstract class Controller : ScriptableObject

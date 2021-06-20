@@ -6,6 +6,8 @@ namespace TurboEsprit
 {
     public static class DirectionHelpers
     {
+        public static readonly CardinalDirection[] cardinalDirections = { CardinalDirection.East, CardinalDirection.West, CardinalDirection.North, CardinalDirection.South }; 
+
         public static readonly Dictionary<CardinalDirection, Vector3> cardinalDirectionVectors = new Dictionary<CardinalDirection, Vector3>
         {
             { CardinalDirection.East, Vector3.right },
@@ -30,6 +32,17 @@ namespace TurboEsprit
             else if (angleDegrees > 45) return CardinalDirection.North;
             else if (angleDegrees < -45) return CardinalDirection.South;
             else return CardinalDirection.East;
+        }
+
+        public static CardinalDirection GetOppositeDirection(CardinalDirection direction)
+        {
+            switch (direction)
+            {
+                case CardinalDirection.East: return CardinalDirection.West;
+                case CardinalDirection.West: return CardinalDirection.East;
+                case CardinalDirection.North: return CardinalDirection.South;
+                default: return CardinalDirection.North;
+            }
         }
     }
 }

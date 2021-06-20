@@ -6,7 +6,7 @@ namespace TurboEsprit
 {
     public class Traffic : MonoBehaviour
     {
-        public const float density = 0.003f; // cars per meter
+        public const float density = 0.0005f; // cars per meter
         public const float safetyDistanceTime = 2;
         public static readonly float[] speedPerLaneMph = new float[] { 5, 20, 25, 30 };
 
@@ -268,6 +268,7 @@ namespace TurboEsprit
             emptySections.Add((safetyDistance, street.length - safetyDistance));
 
             int carsCount = Mathf.RoundToInt(density * street.length + Random.value);
+            if (density == 0) carsCount = 0;
 
             for (int i = 0; i < carsCount; i++)
             {

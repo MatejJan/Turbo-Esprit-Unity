@@ -50,6 +50,66 @@ namespace TurboEsprit
             }
         }
 
+        public float GetStreetWidthInDrection(CardinalDirection direction)
+        {
+            Street street = GetStreetInOrientation(DirectionHelpers.cardinalDirectionStreetOrientations[direction]);
+            return street != null ? street.width : (City.sidewalkWidth + City.laneWidth) * 2;
+        }
+
+        public int GetLanesCountInDrection(CardinalDirection direction)
+        {
+            Street street = GetStreetInOrientation(DirectionHelpers.cardinalDirectionStreetOrientations[direction]);
+            return street != null ? street.lanesCount : 2;
+        }
+
+        public float GetCenterOfLaneSidewaysPosition(int lane, CardinalDirection direction)
+        {
+            float width = GetStreetWidthInDrection(direction);
+            int lanesCount = GetLanesCountInDrection(direction);
+
+            float sidewalkHalfWidth = City.sidewalkWidth / 2;
+            if (lane == 0)
+            {
+                return sidewalkHalfWidth;
+            }
+            else if (lane == lanesCount + 1)
+            {
+                return width - sidewalkHalfWidth;
+            }
+            else
+            {
+                return City.sidewalkWidth + (lane - 0.5f) * City.laneWidth;
+            }
+        }
+
+        public Vector3 GetCenterOfLanePosition(Vector3 sourcePosition, int lane, CardinalDirection direction)
+        {
+            float targetSidewaysPosition = GetCenterOfLaneSidewaysPosition(lane, direction);
+
+            float streetHalfWidth = GetStreetWidthInDrection(direction) / 2;
+
+            switch (direction)
+            {
+                case CardinalDirection.North:
+                    sourcePosition.x = position.x - streetHalfWidth + targetSidewaysPosition;
+                    break;
+
+                case CardinalDirection.South:
+                    sourcePosition.x = position.x + streetHalfWidth - targetSidewaysPosition;
+                    break;
+
+                case CardinalDirection.West:
+                    sourcePosition.z = position.y - streetHalfWidth + targetSidewaysPosition;
+                    break;
+
+                case CardinalDirection.East:
+                    sourcePosition.z = position.y + streetHalfWidth - targetSidewaysPosition;
+                    break;
+            }
+
+            return sourcePosition;
+        }
+
         public void Generate(City city)
         {
             // Create the intersection game object as a child of Intersections.

@@ -13,9 +13,9 @@ MonoBehaviour:
   m_Name: TrafficDriver
   m_EditorClassIdentifier: 
   safeDistanceTime: 2
-  minSafeDistance: 2
+  minimumSafeDistance: 2
+  minimumSafeDistanceForStationary: 0.5
   speedMatchingSafeDistanceFactor: 2
   minimumRecognizableObstacleSpeed: 1
   minimumMovingAwayRelativeSpeed: 1
-  frontRaycastOriginOffset: {x: 0, y: 0.5, z: 2.5}
-  maxRaycastDistance: 100
+  maximumRaycastDistance: 100

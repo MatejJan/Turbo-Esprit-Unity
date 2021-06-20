@@ -20,8 +20,57 @@ namespace TurboEsprit
         private GameObject gameObject;
 
         public Transform transform => gameObject.transform;
-
         public StreetOrientation orientation => startIntersection.position.y == endIntersection.position.y ? StreetOrientation.EastWest : StreetOrientation.NorthSouth;
+
+        public int validLanesCount => isOneWay ? lanesCount : lanesCount / 2;
+
+        public float GetCenterOfLaneSidewaysPosition(int lane)
+        {
+            float sidewalkHalfWidth = City.sidewalkWidth / 2;
+            if (lane == 0)
+            {
+                return sidewalkHalfWidth;
+            }
+            else if (lane == lanesCount + 1)
+            {
+                return width - sidewalkHalfWidth;
+            }
+            else
+            {
+                return City.sidewalkWidth + (lane - 0.5f) * City.laneWidth;
+            }
+        }
+
+        public Vector3 GetCenterOfLanePosition(int lane, float lengthwisePosition, CardinalDirection direction)
+        {
+            float sidewaysPosition = GetCenterOfLaneSidewaysPosition(lane);
+            return GetPositionInDirection(sidewaysPosition, lengthwisePosition, direction);
+        }
+
+        public Vector3 GetPositionInDirection(float sidewaysPosition, float lengthwisePosition, CardinalDirection direction)
+        {
+            if (direction == CardinalDirection.South || direction == CardinalDirection.West)
+            {
+                sidewaysPosition = width - sidewaysPosition;
+                lengthwisePosition = length - lengthwisePosition;
+            }
+
+            return transform.TransformPoint(new Vector3(sidewaysPosition, 0, lengthwisePosition));
+        }
+
+        public float GetLengthwisePosition(Vector3 position, CardinalDirection direction)
+        {
+            Vector3 localPosition = transform.InverseTransformPoint(position);
+
+            if (direction == CardinalDirection.South || direction == CardinalDirection.West)
+            {
+                return length - localPosition.z;
+            }
+            else
+            {
+                return localPosition.z;
+            }
+        }
 
         public void Generate(City city)
         {

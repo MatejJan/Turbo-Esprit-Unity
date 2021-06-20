@@ -31,3 +31,5 @@ MonoBehaviour:
   drivingStraightBaseAllowedAngleDegrees: 30
   drivingStraightAllowedAngleHalvingSpeedMph: 30
   drivingStraightEqualizationDuration: 2
+  distanceForChangingLane: 100
+  distanceForTurning: 50

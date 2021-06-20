@@ -137,6 +137,9 @@ namespace TurboEsprit
             // Perform the turn if controls dictated it.
             if (performTurn)
             {
+                // When going backwards, turning needs to be reversed.
+                if (sensors.car.speed < 0) turningInput *= -1;
+
                 // Determine to which side we're currently turning.
                 Vector3 forward = sensors.car.transform.forward;
                 Quaternion currentTargetDelta = Quaternion.FromToRotation(forward, actuators.targetDirection);

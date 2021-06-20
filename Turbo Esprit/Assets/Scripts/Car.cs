@@ -133,6 +133,10 @@ namespace TurboEsprit
         public new Rigidbody rigidbody { get; private set; }
         public GearshiftPosition topGear => (GearshiftPosition)(specifications.forwardGearRatios.Length - 1);
 
+        public Bounds bounds => GetComponentInChildren<MeshCollider>().bounds;
+        public Vector3 frontCenterPoint => new Vector3(0, bounds.extents.y, bounds.extents.z);
+        public Vector3 frontCenterPointWorld => transform.TransformPoint(frontCenterPoint);
+
         // Methods
 
         public void InitializeSpeed(float speed)
@@ -383,7 +387,7 @@ namespace TurboEsprit
             // Add drag force.
             Vector3 dragForce = -rigidbody.velocity.normalized * specifications.dragForceCoefficient * specifications.frontalArea * aerodynamicForceFactor;
             rigidbody.AddForce(dragForce);
-        }        
+        }
 
         private float GetEngineBrakingTorque(float engineAngularSpeed, float airFuelIntake)
         {

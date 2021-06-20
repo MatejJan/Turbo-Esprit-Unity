@@ -33,6 +33,11 @@ namespace TurboEsprit
         public float drivingStraightAllowedAngleHalvingSpeedMph;
         public float drivingStraightEqualizationDuration;
 
+        public float distanceForChangingLane;
+        public float distanceForTurning;
+
+        public bool respectsSpeedLimits;
+
         // Properties in SI units
 
         public float minBrakingSpeedDifference => minBrakingSpeedDifferenceMph * PhysicsHelper.milesPerHourToMetersPerSecond;

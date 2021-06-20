@@ -9,6 +9,8 @@ namespace TurboEsprit
     {
         // Fields
 
+        private Car car;
+
         private Street _street;
         private Intersection _intersection;
 
@@ -130,23 +132,30 @@ namespace TurboEsprit
 
         public float GetCenterOfLaneSidewaysPosition(int lane)
         {
-            float sidewalkHalfWidth = City.sidewalkWidth / 2;
-            if (lane == 0)
+            return representativeStreet.GetCenterOfLaneSidewaysPosition(lane);
+        }
+
+        public Vector3 GetCenterOfLanePosition(int lane)
+        {
+            return GetCenterOfLanePosition(lane, streetCardinalDirection);
+        }
+
+        public Vector3 GetCenterOfLanePosition(int lane, CardinalDirection direction)
+        {
+            if (intersection != null)
             {
-                return sidewalkHalfWidth;
-            }
-            else if (lane == representativeStreet.lanesCount + 1)
-            {
-                return representativeStreet.width - sidewalkHalfWidth;
+                return intersection.GetCenterOfLanePosition(carWorldDirection, lane, direction);
             }
             else
             {
-                return City.sidewalkWidth + (lane - 0.5f) * City.laneWidth;
+                float lengthwisePosition = representativeStreet.GetLengthwisePosition(carWorldPosition, direction);
+                return representativeStreet.GetCenterOfLanePosition(lane, lengthwisePosition, direction);
             }
         }
 
         private void Awake()
         {
+            car = GetComponent<Car>();
             streetCardinalDirection = CardinalDirection.North;
             worldToStreetRotation = Quaternion.identity;
             dummyStreet.lanesCount = 2;
@@ -210,7 +219,7 @@ namespace TurboEsprit
                 }
             }
 
-            Debug.LogError($"Unable to track car in the city network. #{transform.position}");
+            Debug.LogError($"Unable to track car in the city network. #{carWorldPosition}");
             _street = null;
             _intersection = null;
         }
@@ -262,12 +271,12 @@ namespace TurboEsprit
 
         private bool IsInBoundsOf(Intersection intersection)
         {
-            return intersection.bounds.Contains(transform.position);
+            return intersection.bounds.Contains(carWorldPosition);
         }
 
         private bool IsInBoundsOf(Bounds bounds)
         {
-            return bounds.Contains(transform.position);
+            return bounds.Contains(carWorldPosition);
         }
 
         private void UpdateTravelDirection()

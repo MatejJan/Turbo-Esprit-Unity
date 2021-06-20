@@ -11,7 +11,7 @@ GameObject:
   - component: {fileID: 2384501414774975357}
   m_Layer: 11
   m_Name: Wheel Colliders
-  m_TagString: Untagged
+  m_TagString: Car
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -45,7 +45,7 @@ GameObject:
   - component: {fileID: 4341838289153882091}
   m_Layer: 11
   m_Name: Wheels
-  m_TagString: Untagged
+  m_TagString: Car
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -93,7 +93,7 @@ GameObject:
   - component: {fileID: 4296627376701056031}
   m_Layer: 11
   m_Name: High Poly Model
-  m_TagString: Untagged
+  m_TagString: Car
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -126,7 +126,7 @@ GameObject:
   - component: {fileID: 7571374793954024765}
   m_Layer: 11
   m_Name: Low Poly Model
-  m_TagString: Untagged
+  m_TagString: Car
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -165,7 +165,7 @@ GameObject:
   - component: {fileID: 3438376520338885120}
   m_Layer: 11
   m_Name: Traffic Car
-  m_TagString: Untagged
+  m_TagString: Car
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -263,6 +263,8 @@ MonoBehaviour:
   turnSignalAudioSource: {fileID: 0}
   turnSignalStart: {fileID: 0}
   turnSignalEnd: {fileID: 0}
+  turnSignalsClickLimitAmount: 2
+  turnSignalsClickLimitDuration: 5
   volumeFactor: 2
   enabledDistance: 100
 --- !u!82 &2643378991910550436
@@ -628,6 +630,10 @@ PrefabInstance:
       propertyPath: m_Layer
       value: 11
       objectReference: {fileID: 0}
+    - target: {fileID: 5563195224204872406, guid: d3f204afad21f4188b3580daa2512928, type: 3}
+      propertyPath: m_TagString
+      value: Car
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: d3f204afad21f4188b3580daa2512928, type: 3}
 --- !u!4 &4128958487622309096 stripped
@@ -711,6 +717,10 @@ PrefabInstance:
       propertyPath: m_Layer
       value: 11
       objectReference: {fileID: 0}
+    - target: {fileID: 919132149155446097, guid: 12b22658ed2804a8ca9b1683d6c4d3cf, type: 3}
+      propertyPath: m_TagString
+      value: Car
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 12b22658ed2804a8ca9b1683d6c4d3cf, type: 3}
 --- !u!4 &2522855515574486957 stripped
@@ -736,6 +746,10 @@ PrefabInstance:
     - target: {fileID: 4645699593732399416, guid: 8a1c9ac58b9c14b2e849f216cda7b5cb, type: 3}
       propertyPath: m_Layer
       value: 11
+      objectReference: {fileID: 0}
+    - target: {fileID: 4645699593732399416, guid: 8a1c9ac58b9c14b2e849f216cda7b5cb, type: 3}
+      propertyPath: m_TagString
+      value: Car
       objectReference: {fileID: 0}
     - target: {fileID: 5418683049756392322, guid: 8a1c9ac58b9c14b2e849f216cda7b5cb, type: 3}
       propertyPath: m_RootOrder
@@ -847,6 +861,10 @@ PrefabInstance:
       propertyPath: m_Layer
       value: 11
       objectReference: {fileID: 0}
+    - target: {fileID: 5563195224204872406, guid: d3f204afad21f4188b3580daa2512928, type: 3}
+      propertyPath: m_TagString
+      value: Car
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: d3f204afad21f4188b3580daa2512928, type: 3}
 --- !u!146 &3260602148188717976 stripped
@@ -866,6 +884,14 @@ PrefabInstance:
   m_Modification:
     m_TransformParent: {fileID: 4296627376701056031}
     m_Modifications:
+    - target: {fileID: 594556565669467, guid: 2a9883b8f18724f788baea82d63424f3, type: 3}
+      propertyPath: m_TagString
+      value: Car
+      objectReference: {fileID: 0}
+    - target: {fileID: 3987508416508618917, guid: 2a9883b8f18724f788baea82d63424f3, type: 3}
+      propertyPath: m_TagString
+      value: Car
+      objectReference: {fileID: 0}
     - target: {fileID: 4885349863427625544, guid: 2a9883b8f18724f788baea82d63424f3, type: 3}
       propertyPath: m_RootOrder
       value: 2
@@ -913,6 +939,18 @@ PrefabInstance:
     - target: {fileID: 7103640444985640678, guid: 2a9883b8f18724f788baea82d63424f3, type: 3}
       propertyPath: m_Name
       value: Cortina Turn Signals
+      objectReference: {fileID: 0}
+    - target: {fileID: 7103640444985640678, guid: 2a9883b8f18724f788baea82d63424f3, type: 3}
+      propertyPath: m_TagString
+      value: Car
+      objectReference: {fileID: 0}
+    - target: {fileID: 8506595314010780362, guid: 2a9883b8f18724f788baea82d63424f3, type: 3}
+      propertyPath: m_TagString
+      value: Car
+      objectReference: {fileID: 0}
+    - target: {fileID: 8938692499039567382, guid: 2a9883b8f18724f788baea82d63424f3, type: 3}
+      propertyPath: m_TagString
+      value: Car
       objectReference: {fileID: 0}
     m_RemovedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 2a9883b8f18724f788baea82d63424f3, type: 3}
@@ -1016,6 +1054,10 @@ PrefabInstance:
       propertyPath: m_Layer
       value: 11
       objectReference: {fileID: 0}
+    - target: {fileID: 919132149155446097, guid: 728267e846048482ba40c9018ac5b9eb, type: 3}
+      propertyPath: m_TagString
+      value: Car
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 728267e846048482ba40c9018ac5b9eb, type: 3}
 --- !u!4 &4103238515374861550 stripped
@@ -1046,6 +1088,10 @@ PrefabInstance:
     - target: {fileID: 4645699593732399416, guid: 8a1c9ac58b9c14b2e849f216cda7b5cb, type: 3}
       propertyPath: m_Layer
       value: 11
+      objectReference: {fileID: 0}
+    - target: {fileID: 4645699593732399416, guid: 8a1c9ac58b9c14b2e849f216cda7b5cb, type: 3}
+      propertyPath: m_TagString
+      value: Car
       objectReference: {fileID: 0}
     - target: {fileID: 5418683049756392322, guid: 8a1c9ac58b9c14b2e849f216cda7b5cb, type: 3}
       propertyPath: m_RootOrder
@@ -1116,6 +1162,10 @@ PrefabInstance:
     - target: {fileID: 4645699593732399416, guid: 8a1c9ac58b9c14b2e849f216cda7b5cb, type: 3}
       propertyPath: m_Layer
       value: 11
+      objectReference: {fileID: 0}
+    - target: {fileID: 4645699593732399416, guid: 8a1c9ac58b9c14b2e849f216cda7b5cb, type: 3}
+      propertyPath: m_TagString
+      value: Car
       objectReference: {fileID: 0}
     - target: {fileID: 5418683049756392322, guid: 8a1c9ac58b9c14b2e849f216cda7b5cb, type: 3}
       propertyPath: m_RootOrder
@@ -1227,6 +1277,10 @@ PrefabInstance:
       propertyPath: m_Layer
       value: 11
       objectReference: {fileID: 0}
+    - target: {fileID: 5563195224204872406, guid: d3f204afad21f4188b3580daa2512928, type: 3}
+      propertyPath: m_TagString
+      value: Car
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: d3f204afad21f4188b3580daa2512928, type: 3}
 --- !u!146 &8635071969880687913 stripped
@@ -1257,6 +1311,10 @@ PrefabInstance:
     - target: {fileID: 4645699593732399416, guid: 8a1c9ac58b9c14b2e849f216cda7b5cb, type: 3}
       propertyPath: m_Layer
       value: 11
+      objectReference: {fileID: 0}
+    - target: {fileID: 4645699593732399416, guid: 8a1c9ac58b9c14b2e849f216cda7b5cb, type: 3}
+      propertyPath: m_TagString
+      value: Car
       objectReference: {fileID: 0}
     - target: {fileID: 5418683049756392322, guid: 8a1c9ac58b9c14b2e849f216cda7b5cb, type: 3}
       propertyPath: m_RootOrder
@@ -1367,6 +1425,10 @@ PrefabInstance:
     - target: {fileID: 5563195224204872406, guid: d3f204afad21f4188b3580daa2512928, type: 3}
       propertyPath: m_Layer
       value: 11
+      objectReference: {fileID: 0}
+    - target: {fileID: 5563195224204872406, guid: d3f204afad21f4188b3580daa2512928, type: 3}
+      propertyPath: m_TagString
+      value: Car
       objectReference: {fileID: 0}
     m_RemovedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: d3f204afad21f4188b3580daa2512928, type: 3}
