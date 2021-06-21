@@ -6,7 +6,7 @@ namespace TurboEsprit
 {
     public class Traffic : MonoBehaviour
     {
-        public const float density = 0.0005f; // cars per meter
+        public const float density = 0.003f; // cars per meter
         public const float safetyDistanceTime = 2;
         public static readonly float[] speedPerLaneMph = new float[] { 5, 20, 25, 30 };
 

@@ -239,8 +239,15 @@ namespace TurboEsprit
                                     TrafficDriver trafficDriver = driver?.controller as TrafficDriver;
                                     if (trafficDriver?.waitingForCar == sensors.car) shouldWaitForCar = false;
 
-                                    // Don't wait if both of us are turning right.
-                                    if (driver != null && driver.turningIntent == Driver.TurningIntent.Right && actuators.turningIntent == Driver.TurningIntent.Right) shouldWaitForCar = false;
+                                    // When turning right, see if other driver's intent can help us not wait.
+                                    if (actuators.turningIntent == Driver.TurningIntent.Right && driver != null)
+                                    {
+                                        // Don't wait if the other car is also turning right.
+                                        if (driver.turningIntent == Driver.TurningIntent.Right) shouldWaitForCar = false;
+
+                                        // Don't wait if the other car is turning left and we're going right into a different lane.
+                                        if (driver.turningIntent == Driver.TurningIntent.Left && nextIntersectionExitingLane > 1) shouldWaitForCar = false;
+                                    }
 
                                     if (shouldWaitForCar)
                                     {
@@ -354,6 +361,7 @@ namespace TurboEsprit
             frontDistance = newFrontDistance;
 
             // Draw debug information.
+            /*
             debugColor = Color.yellow;
             if (actuators.targetSpeed == desiredLaneSpeed) debugColor = Color.green;
             if (actuators.targetSpeed == 0) debugColor = Color.red;
@@ -368,6 +376,7 @@ namespace TurboEsprit
             Debug.DrawLine(safeDistanceFromTarget - Vector3.up, safeDistanceFromTarget + Vector3.up, debugColor);
 
             Debug.DrawLine(endOfRay + Vector3.up * 3, endOfRay + forward * frontObstacleSpeed + Vector3.up * 3, Color.red);
+            */
         }
 
         private void UpdateTargetLaneAndDirection(Driver.Sensors sensors, Driver.Actuators actuators)
